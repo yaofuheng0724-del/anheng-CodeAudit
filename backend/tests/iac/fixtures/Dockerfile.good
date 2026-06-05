@@ -1,0 +1,5 @@
+FROM ubuntu:22.04
+COPY install.sh /tmp/install.sh
+RUN sha256sum -c install.sh.sha256 && bash /tmp/install.sh
+USER appuser
+CMD ["/bin/bash"]

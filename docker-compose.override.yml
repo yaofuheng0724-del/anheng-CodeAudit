@@ -1,0 +1,31 @@
+# =============================================
+# DeepAudit V6.0 Docker Compose 开发者补充配置
+# =============================================
+# 部署: docker compose up -d
+# 注意: 仅用于开发者调试，生产环境请勿使用
+
+services:
+  # =============================================
+  # 静态规则挂载（开发 & localrepo 部署共用）
+  # =============================================
+  # backend 镜像 build context 在 ./backend，COPY 不到外层 rules/，
+  # 必须运行时挂入；否则 _run_iac_workspace 与 quick_scan 找不到 yaml
+  # 规则，扫描结果恒为 0。docker-compose.yml 默认会叠加本文件，
+  # scripts/deploy-local-repo.sh 也会通过 -f 显式合并本文件。
+  backend:
+    volumes:
+      - ./rules:/rules:ro
+
+  # =============================================
+  # 开发者调试服务
+  # =============================================
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - deepaudit-network

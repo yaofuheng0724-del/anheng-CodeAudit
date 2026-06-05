@@ -1,0 +1,178 @@
+rules:
+  # ============ 容器镜像类 (4 条) ============
+  - id: IAC-CTR-001
+    message: "Dockerfile 未指定非 root USER，容器将以 root 运行"
+    severity: WARNING
+    languages: [generic]
+    paths:
+      include: ["Dockerfile", "*.dockerfile", "Dockerfile.*"]
+    patterns:
+      - pattern-either:
+          - pattern: USER root
+          - pattern: USER 0
+    metadata:
+      category: iac
+      iac_target: dockerfile
+      rule_code: IAC-CTR-001
+
+  - id: IAC-CTR-002
+    message: "镜像使用 :latest 标签或未指定标签，不利于复现"
+    severity: WARNING
+    languages: [generic]
+    paths:
+      include: ["Dockerfile", "*.dockerfile", "Dockerfile.*"]
+    patterns:
+      - pattern-either:
+          - pattern-regex: '^FROM\s+(--\S+\s+)?\S+:latest(\s|$)'
+          - pattern-regex: '^FROM\s+(--\S+\s+)?[^\s:@-][^\s:@]*\s*$'
+    metadata:
+      category: iac
+      iac_target: dockerfile
+      rule_code: IAC-CTR-002
+
+  - id: IAC-CTR-003
+    message: "Dockerfile 使用 ADD 抓取远程 URL，建议改用 RUN curl + 校验"
+    severity: WARNING
+    languages: [generic]
+    paths:
+      include: ["Dockerfile", "*.dockerfile", "Dockerfile.*"]
+    pattern-regex: '^ADD\s+https?://'
+    metadata:
+      category: iac
+      iac_target: dockerfile
+      rule_code: IAC-CTR-003
+
+  - id: IAC-CTR-004
+    message: "Dockerfile 出现 'curl ... | sh' 模式，远程脚本执行风险"
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include: ["Dockerfile", "*.dockerfile", "Dockerfile.*"]
+    pattern-regex: '(curl|wget)[^\n]*\|\s*(sh|bash)'
+    metadata:
+      category: iac
+      iac_target: dockerfile
+      rule_code: IAC-CTR-004
+
+  # ============ 编排部署类 (3 条) ============
+  - id: IAC-ORC-001
+    message: "容器以 privileged: true 运行，等同于 root 主机权限"
+    severity: ERROR
+    languages: [yaml]
+    paths:
+      include: ["docker-compose*.yml", "docker-compose*.yaml", "compose.yml", "compose.yaml"]
+    pattern: "privileged: true"
+    metadata:
+      category: iac
+      iac_target: compose
+      rule_code: IAC-ORC-001
+
+  - id: IAC-ORC-002
+    message: "服务使用 network_mode: host，破坏容器网络隔离"
+    severity: WARNING
+    languages: [yaml]
+    paths:
+      include: ["docker-compose*.yml", "docker-compose*.yaml", "compose.yml", "compose.yaml"]
+    pattern-regex: "network_mode:\\s*[\"']?host[\"']?"
+    metadata:
+      category: iac
+      iac_target: compose
+      rule_code: IAC-ORC-002
+
+  - id: IAC-ORC-003
+    message: "容器挂载 /var/run/docker.sock，等同于授予宿主机 root"
+    severity: ERROR
+    languages: [yaml]
+    paths:
+      include: ["docker-compose*.yml", "docker-compose*.yaml", "compose.yml", "compose.yaml"]
+    pattern-regex: '/var/run/docker\.sock'
+    metadata:
+      category: iac
+      iac_target: compose
+      rule_code: IAC-ORC-003
+
+  # ============ CI/CD 类 (3 条) ============
+  - id: IAC-CI-001
+    message: "pull_request_target 触发器存在权限提升风险，避免直接 checkout PR 头"
+    severity: ERROR
+    languages: [yaml]
+    paths:
+      include: [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+    pattern: "pull_request_target"
+    metadata:
+      category: iac
+      iac_target: github_actions
+      rule_code: IAC-CI-001
+
+  - id: IAC-CI-002
+    message: "GitHub Action 未固定 commit SHA，存在供应链篡改风险"
+    severity: WARNING
+    languages: [yaml]
+    paths:
+      include: [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+    pattern-regex: 'uses:\s+[\w\-.]+/[\w\-./]+@(?![a-f0-9]{40}(\s|$))\S+'
+    metadata:
+      category: iac
+      iac_target: github_actions
+      rule_code: IAC-CI-002
+
+  - id: IAC-CI-003
+    message: "secrets 直接出现在 run 脚本里，可能被日志/进程列表泄漏，建议改用 env 注入"
+    severity: ERROR
+    languages: [yaml]
+    paths:
+      include: [".github/workflows/*.yml", ".github/workflows/*.yaml"]
+    patterns:
+      - pattern-either:
+          - pattern-regex: 'run:[^\n]*\$\{\{\s*secrets\.'
+          - pattern-regex: 'run:\s*[|>][-+]?\s*\n(?:[ \t]+[^\n]*\n)*?[ \t]+[^\n]*\$\{\{\s*secrets\.'
+    metadata:
+      category: iac
+      iac_target: github_actions
+      rule_code: IAC-CI-003
+
+  # ============ IaC 文件通用安全类 (2 条) ============
+  # 把过去只在通用源码扫描里命中的 DA-SECRET-001 / DA-CRYPTO-001 同步到
+  # IaC 路径，让 IaC 扫描自洽——独立分流后，IaC 任务不再走通用源码扫描，
+  # 但 Dockerfile / compose / actions 里这两类问题仍需覆盖。
+  - id: IAC-SEC-001
+    message: "IaC 文件中疑似硬编码密钥/Token/Password，建议改用 secrets 注入或环境变量"
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - "Dockerfile"
+        - "*.dockerfile"
+        - "Dockerfile.*"
+        - "docker-compose*.yml"
+        - "docker-compose*.yaml"
+        - "compose.yml"
+        - "compose.yaml"
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    pattern-regex: '(?i)(secret|api[_-]?key|token|access[_-]?key|password)\s*[:=]\s*["''][^"'']{8,}["'']'
+    metadata:
+      category: iac
+      iac_target: any
+      rule_code: IAC-SEC-001
+
+  - id: IAC-SEC-002
+    message: "IaC 文件中疑似使用弱加密算法（MD5/SHA1/DES/RC4），建议改用现代算法"
+    severity: WARNING
+    languages: [generic]
+    paths:
+      include:
+        - "Dockerfile"
+        - "*.dockerfile"
+        - "Dockerfile.*"
+        - "docker-compose*.yml"
+        - "docker-compose*.yaml"
+        - "compose.yml"
+        - "compose.yaml"
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    pattern-regex: '\b(md5sum|sha1sum|openssl\s+(?:dgst\s+-md5|dgst\s+-sha1|enc\s+-des|enc\s+-rc4))\b'
+    metadata:
+      category: iac
+      iac_target: any
+      rule_code: IAC-SEC-002

@@ -1,0 +1,48 @@
+# Android permissions considered high-risk when granted by a third-party app.
+- name: READ_SMS
+  severity: high
+  title: 高危权限 READ_SMS
+  description: 应用申请读取短信权限，可能用于截获验证码或敏感信息。
+  suggestion: 确认业务确实需要该权限；若仅用于读取验证码，改用 SMS Retriever API。
+
+- name: SEND_SMS
+  severity: high
+  title: 高危权限 SEND_SMS
+  description: 应用申请发送短信权限，存在话费扣费风险。
+  suggestion: 确认业务必要性；避免在后台静默发送。
+
+- name: READ_CONTACTS
+  severity: medium
+  title: 高危权限 READ_CONTACTS
+  description: 应用申请读取通讯录权限，存在隐私泄露风险。
+  suggestion: 确认业务必要性；明示用户用途。
+
+- name: ACCESS_FINE_LOCATION
+  severity: medium
+  title: 高危权限 ACCESS_FINE_LOCATION
+  description: 应用申请精确位置权限。
+  suggestion: 确认业务必要性；尽量使用粗粒度位置 ACCESS_COARSE_LOCATION。
+
+- name: RECORD_AUDIO
+  severity: high
+  title: 高危权限 RECORD_AUDIO
+  description: 应用申请录音权限，存在窃听风险。
+  suggestion: 确认业务必要性；仅在用户主动触发时启用麦克风。
+
+- name: CAMERA
+  severity: medium
+  title: 高危权限 CAMERA
+  description: 应用申请相机权限。
+  suggestion: 确认业务必要性。
+
+- name: WRITE_EXTERNAL_STORAGE
+  severity: low
+  title: 危险权限 WRITE_EXTERNAL_STORAGE
+  description: 应用申请写外部存储权限（Android 10+ 推荐使用分区存储替代）。
+  suggestion: 迁移到 MediaStore / Scoped Storage。
+
+- name: REQUEST_INSTALL_PACKAGES
+  severity: high
+  title: 高危权限 REQUEST_INSTALL_PACKAGES
+  description: 应用申请安装其他 APK 的权限，常被滥用于推广/木马链。
+  suggestion: 极少业务真正需要该权限，应避免。

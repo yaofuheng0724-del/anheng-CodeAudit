@@ -1,0 +1,1791 @@
+rules:
+  # =================== Python ===================
+  - id: deepaudit.python.sql-injection
+    languages: [python]
+    severity: ERROR
+    message: Python SQL 语句中可能拼接了不可信输入
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute("..." + $INPUT)
+          - pattern: $CURSOR.execute(f"...{$INPUT}...")
+
+  # =================== Java ===================
+  - id: deepaudit.java.sqli-statement-execute
+    languages: [java]
+    severity: ERROR
+    message: "Java Statement.execute() 使用了字符串拼接构造 SQL，存在注入风险。请改用 PreparedStatement。"
+    patterns:
+      - pattern-either:
+          - pattern: $STMT.execute($SQL + $INPUT)
+          - pattern: $STMT.executeQuery($SQL + $INPUT)
+          - pattern: $STMT.executeUpdate($SQL + $INPUT)
+
+  - id: deepaudit.java.sqli-hibernate-query
+    languages: [java]
+    severity: ERROR
+    message: "Hibernate/JPA createQuery/createNativeQuery 使用了字符串拼接，存在注入风险。请使用命名参数或 Criteria API。"
+    patterns:
+      - pattern-either:
+          - pattern: $EM.createQuery($SQL + $INPUT)
+          - pattern: $EM.createNativeQuery($SQL + $INPUT)
+          - pattern: $SESSION.createSQLQuery($SQL + $INPUT)
+
+  - id: deepaudit.java.xss-response-writer
+    languages: [java]
+    severity: ERROR
+    message: "Servlet response.getWriter() 直接输出数据到响应，可能造成 XSS。请使用 OWASP Java Encoder 进行输出编码。"
+    pattern-either:
+      - pattern: response.getWriter().print(...)
+      - pattern: response.getWriter().write(...)
+      - pattern: response.getWriter().println(...)
+
+  - id: deepaudit.java.xss-jsp-expression
+    languages: [jsp]
+    severity: ERROR
+    message: "JSP 表达式直接输出 request 参数，存在 XSS 风险。请使用 JSTL <c:out> 或 EL 函数进行编码。"
+    pattern: <%= request.getParameter(...)
+
+  - id: deepaudit.java.ssrf-url-from-input
+    languages: [java]
+    severity: WARNING
+    message: "URL 对象由用户输入构造，可能存在 SSRF 风险。请校验 URL 白名单并禁止请求内网地址。"
+    pattern-either:
+      - pattern: new URL($REQ.getParameter(...))
+      - pattern: new URL($INPUT)
+
+  - id: deepaudit.java.ssrf-resttemplate
+    languages: [java]
+    severity: WARNING
+    message: "RestTemplate 使用动态 URL 发起请求，可能存在 SSRF。请校验 URL 目标白名单。"
+    pattern-either:
+      - pattern: $RT.getForObject($URL, ...)
+      - pattern: $RT.postForObject($URL, ...)
+      - pattern: $RT.exchange($URL, ...)
+
+  - id: deepaudit.java.cmdi-runtime-exec
+    languages: [java]
+    severity: ERROR
+    message: "Runtime.exec() 接收了拼接的输入，存在命令注入风险。请使用固定参数列表并白名单校验输入。"
+    pattern-either:
+      - pattern: Runtime.getRuntime().exec($CMD + $INPUT)
+      - pattern: Runtime.getRuntime().exec($REQ.getParameter(...))
+
+  - id: deepaudit.java.cmdi-processbuilder
+    languages: [java]
+    severity: ERROR
+    message: "ProcessBuilder 使用了拼接的输入构造命令，存在命令注入风险。"
+    pattern-either:
+      - pattern: new ProcessBuilder($CMD + $INPUT)
+      - pattern: new ProcessBuilder($REQ.getParameter(...))
+
+  - id: deepaudit.java.cmdi-script-engine
+    languages: [java]
+    severity: ERROR
+    message: "ScriptEngine.eval() 执行了拼接的输入，存在代码注入风险。"
+    patterns:
+      - pattern: $ENGINE.eval($SCRIPT + $INPUT)
+
+  - id: deepaudit.java.path-traversal-file
+    languages: [java]
+    severity: WARNING
+    message: "File/Path 对象由外部输入构造，可能存在路径遍历。请做路径归一化和白名单校验。"
+    pattern-either:
+      - pattern: new File($REQ.getParameter(...))
+      - pattern: new File($BASE + $INPUT)
+      - pattern: Paths.get($BASE, $INPUT)
+      - pattern: new FileInputStream($REQ.getParameter(...))
+      - pattern: new FileOutputStream($REQ.getParameter(...))
+
+  - id: deepaudit.java.hardcoded-password
+    languages: [java]
+    severity: WARNING
+    message: "代码中硬编码了密码，请迁移到环境变量或密钥管理系统。"
+    pattern-either:
+      - pattern: setPassword("...")
+      - pattern: $CONN.setPassword("...")
+
+  - id: deepaudit.java.weak-crypto-hash
+    languages: [java]
+    severity: WARNING
+    message: "使用 MD5 或 SHA-1 进行哈希，算法不安全。请改用 SHA-256 或更强的算法。"
+    pattern-either:
+      - pattern: MessageDigest.getInstance("MD5")
+      - pattern: MessageDigest.getInstance("SHA1")
+      - pattern: MessageDigest.getInstance("SHA-1")
+
+  - id: deepaudit.java.weak-crypto-cipher
+    languages: [java]
+    severity: WARNING
+    message: "使用 DES/RC4/Blowfish 加密，算法不安全。请改用 AES-256-GCM。"
+    pattern-either:
+      - pattern: Cipher.getInstance("DES...")
+      - pattern: Cipher.getInstance("RC4...")
+      - pattern: DESKeySpec(...)
+
+  - id: deepaudit.java.resource-leak-connection
+    languages: [java]
+    severity: WARNING
+    message: "数据库连接未使用 try-with-resources，可能导致资源泄漏。请确保在 finally 或 try-with-resources 中关闭。"
+    pattern-either:
+      - pattern: $DS.getConnection()
+      - pattern: DriverManager.getConnection(...)
+
+  - id: deepaudit.java.resource-leak-stream
+    languages: [java]
+    severity: WARNING
+    message: "IO 流未使用 try-with-resources，可能导致资源泄漏。"
+    pattern-either:
+      - pattern: new FileInputStream(...)
+      - pattern: new Socket(...)
+      - pattern: new ServerSocket(...)
+
+  # =================== JavaScript ===================
+  - id: deepaudit.javascript.xss
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: 前端直接写入 innerHTML，可能造成 XSS
+    pattern-either:
+      - pattern: $EL.innerHTML = $VALUE
+      - pattern: dangerouslySetInnerHTML
+
+  # =================== PHP ===================
+  - id: deepaudit.php.path-traversal
+    languages: [php]
+    severity: WARNING
+    message: PHP 文件操作中直接使用外部输入，可能存在路径遍历
+    patterns:
+      - pattern-either:
+          - pattern: include($_GET[...])
+          - pattern: require($_GET[...])
+          - pattern: file_get_contents($_GET[...])
+
+  # =================== Go ===================
+  - id: deepaudit.go.ssrf
+    languages: [go]
+    severity: WARNING
+    message: Go 中动态 URL 请求可能引入 SSRF
+    patterns:
+      - pattern-either:
+          - pattern: http.Get($URL)
+          - pattern: http.Post($URL, ...)
+
+  # =================== C/C++ ===================
+  - id: deepaudit.c.buffer-overflow
+    languages: [c, cpp]
+    severity: ERROR
+    message: C/C++ 中使用不安全字符串函数，可能导致缓冲区溢出
+    pattern-either:
+      - pattern: strcpy(...)
+      - pattern: strcat(...)
+      - pattern: gets(...)
+      - pattern: sprintf(...)
+
+  - id: deepaudit.cpp.cmdi-system
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ 使用 system() 执行命令，存在命令注入风险。请使用 execve() 等参数数组接口。"
+    pattern: system($VAR)
+
+  - id: deepaudit.cpp.cmdi-popen
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ 使用 popen() 执行命令，存在命令注入风险。"
+    pattern: popen($VAR, ...)
+
+  - id: deepaudit.cpp.cmdi-exec-family
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ 使用 exec 函数族执行外部程序，请确认参数来源可信。"
+    pattern-either:
+      - pattern: execl(...)
+      - pattern: execlp(...)
+      - pattern: execle(...)
+      - pattern: execv(...)
+      - pattern: execvp(...)
+      - pattern: execve(...)
+
+  - id: deepaudit.cpp.path-traversal-fopen
+    languages: [c, cpp]
+    severity: WARNING
+    message: "fopen() 使用了拼接的路径，可能存在路径遍历。请做路径归一化校验。"
+    patterns:
+      - pattern-either:
+          - pattern: fopen($PATH + $INPUT, ...)
+          - pattern: fopen($BUF, ...)
+
+  - id: deepaudit.cpp.xss-cgi-printf
+    languages: [c, cpp]
+    severity: WARNING
+    message: "CGI 程序使用 printf 输出 HTML，存在 XSS 风险。请对所有动态内容做 HTML 实体编码。"
+    patterns:
+      - pattern: printf("<...>", ...)
+
+  - id: deepaudit.cpp.sqli-mysql-query
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ mysql_query() 使用了拼接的 SQL，存在注入风险。请使用 mysql_stmt_prepare + bind。"
+    pattern: mysql_query($CONN, $SQL + $INPUT)
+
+  - id: deepaudit.cpp.sqli-sqlite-exec
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ sqlite3_exec() 使用了拼接的 SQL，存在注入风险。请使用 sqlite3_prepare_v2 + bind。"
+    pattern: sqlite3_exec($DB, $SQL + $INPUT, ...)
+
+  - id: deepaudit.cpp.weak-crypto-md5
+    languages: [c, cpp]
+    severity: WARNING
+    message: "使用 OpenSSL MD5 哈希，算法不安全。请改用 SHA-256+。"
+    pattern-either:
+      - pattern: MD5_Init(...)
+      - pattern: MD5_Update(...)
+      - pattern: MD5_Final(...)
+
+  - id: deepaudit.cpp.weak-crypto-sha1
+    languages: [c, cpp]
+    severity: WARNING
+    message: "使用 OpenSSL SHA-1 哈希，算法不安全。请改用 SHA-256+。"
+    pattern-either:
+      - pattern: SHA1_Init(...)
+      - pattern: SHA1_Update(...)
+
+  - id: deepaudit.cpp.weak-crypto-des
+    languages: [c, cpp]
+    severity: WARNING
+    message: "使用 OpenSSL DES 加密，算法不安全。请改用 AES-256。"
+    pattern-either:
+      - pattern: DES_set_key(...)
+      - pattern: DES_ecb_encrypt(...)
+      - pattern: DES_encrypt(...)
+
+  - id: deepaudit.cpp.buffer-overflow-format
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ 使用 vsprintf，可能导致缓冲区溢出。请改用 vsnprintf。"
+    pattern: vsprintf(...)
+
+  - id: deepaudit.cpp.null-deref-after-malloc
+    languages: [c, cpp]
+    severity: WARNING
+    message: "malloc/calloc/realloc 后未检查返回值是否为 NULL，可能导致空指针解引用。请添加 NULL 检查。"
+    patterns:
+      - pattern: $PTR = malloc(...)
+      - pattern-not-inside: |
+          $PTR = malloc(...);
+          if ($PTR == NULL) { ... }
+
+  # =================== 扩展 Python 规则 (新增1) ===================
+  - id: deepaudit.python.cmd-injection-os-system
+    languages: [python]
+    severity: ERROR
+    message: "Python os.system() 使用了拼接输入，存在命令注入风险。请使用 subprocess 模块并避免 shell=True。"
+    pattern-either:
+      - pattern: os.system($CMD + $INPUT)
+      - pattern: os.system(f"...{$INPUT}...")
+
+  - id: deepaudit.python.cmd-injection-subprocess
+    languages: [python]
+    severity: ERROR
+    message: "Python subprocess 使用 shell=True 且输入未经过滤，存在命令注入风险。请使用参数列表形式。"
+    pattern-either:
+      - pattern: subprocess.call(..., shell=True)
+      - pattern: subprocess.Popen(..., shell=True)
+
+  - id: deepaudit.python.xss-template-render
+    languages: [python]
+    severity: WARNING
+    message: "Python 模板渲染可能存在 XSS 风险。请确保对用户输入进行 HTML 编码。"
+    pattern-either:
+      - pattern: jinja2.Template($INPUT).render(...)
+      - pattern: render_template_string($INPUT)
+
+  - id: deepaudit.python.path-traversal-open
+    languages: [python]
+    severity: WARNING
+    message: "Python open() 使用外部输入构造路径，可能存在路径遍历。请做路径归一化和白名单校验。"
+    pattern-either:
+      - pattern: open($INPUT, ...)
+      - pattern: open($BASE + $INPUT, ...)
+
+  - id: deepaudit.python.hardcoded-secret
+    languages: [python]
+    severity: WARNING
+    message: "Python 代码中硬编码了密钥/密码，请迁移到环境变量或密钥管理系统。"
+    pattern-either:
+      - pattern: secret = "..."
+      - pattern: password = "..."
+      - pattern: api_key = "..."
+
+  - id: deepaudit.python.insecure-deserialization-pickle
+    languages: [python]
+    severity: ERROR
+    message: "Python pickle.loads() 反序列化不可信数据，存在代码执行风险。请使用 JSON 或其他安全格式。"
+    pattern-either:
+      - pattern: pickle.loads($INPUT)
+      - pattern: pickle.load($INPUT)
+
+  - id: deepaudit.python.insecure-deserialization-yaml
+    languages: [python]
+    severity: ERROR
+    message: "Python yaml.load() 使用不安全的加载器，存在代码执行风险。请使用 yaml.safe_load()。"
+    pattern-either:
+      - pattern: yaml.load($INPUT)
+      - pattern: yaml.load($INPUT, Loader=yaml.Loader)
+
+  - id: deepaudit.python.insecure-requests-verify-false
+    languages: [python]
+    severity: WARNING
+    message: "Python requests 禁用了 SSL 证书验证，存在中间人攻击风险。请移除 verify=False。"
+    pattern-either:
+      - pattern: requests.get(..., verify=False)
+      - pattern: requests.post(..., verify=False)
+
+  - id: deepaudit.python.insecure-temp-file
+    languages: [python]
+    severity: WARNING
+    message: "Python tempfile.mktemp() 不安全，存在竞争条件。请使用 tempfile.NamedTemporaryFile()。"
+    pattern: tempfile.mktemp(...)
+
+  - id: deepaudit.python.ssrf-requests
+    languages: [python]
+    severity: WARNING
+    message: "Python requests 使用用户输入构造 URL，可能存在 SSRF 风险。请校验 URL 白名单。"
+    pattern-either:
+      - pattern: requests.get($INPUT)
+      - pattern: requests.post($INPUT, ...)
+
+  - id: deepaudit.python.insecure-random
+    languages: [python]
+    severity: WARNING
+    message: "Python random 模块不应用于安全相关场景。请使用 secrets 模块。"
+    pattern-either:
+      - pattern: random.random()
+      - pattern: random.randint(...)
+
+  - id: deepaudit.python.insecure-eval
+    languages: [python]
+    severity: ERROR
+    message: "Python eval() 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern-either:
+      - pattern: eval($INPUT)
+      - pattern: exec($INPUT)
+
+  - id: deepaudit.python.insecure-sqlalchemy-text
+    languages: [python]
+    severity: ERROR
+    message: "SQLAlchemy text() 使用字符串拼接，存在 SQL 注入风险。请使用参数绑定。"
+    pattern-either:
+      - pattern: text($SQL + $INPUT)
+      - pattern: db.session.execute(text($SQL + $INPUT))
+
+  - id: deepaudit.python.insecure-django-extra
+    languages: [python]
+    severity: ERROR
+    message: "Django extra() 使用字符串拼接，存在 SQL 注入风险。请使用参数化查询。"
+    pattern: $QS.extra(..., where=[$SQL + $INPUT], ...)
+
+  - id: deepaudit.python.insecure-django-raw
+    languages: [python]
+    severity: ERROR
+    message: "Django raw() 使用字符串拼接，存在 SQL 注入风险。请使用参数化查询。"
+    pattern: Model.objects.raw($SQL + $INPUT)
+
+  - id: deepaudit.python.insecure-flask-debug-mode
+    languages: [python]
+    severity: WARNING
+    message: "Flask 启用了调试模式，生产环境存在安全风险。请禁用 debug=True。"
+    pattern-either:
+      - pattern: app.run(..., debug=True)
+      - pattern: app.debug = True
+
+  - id: deepaudit.python.insecure-permission-chmod
+    languages: [python]
+    severity: WARNING
+    message: "Python os.chmod() 设置了过于宽松的权限。请使用更严格的权限设置。"
+    pattern-either:
+      - pattern: os.chmod(..., 0o777)
+      - pattern: os.chmod(..., 0o666)
+
+  - id: deepaudit.python.insecure-xml-etree
+    languages: [python]
+    severity: WARNING
+    message: "Python xml.etree 不禁止外部实体，存在 XXE 风险。请使用 defusedxml。"
+    pattern-either:
+      - pattern: xml.etree.ElementTree.fromstring($INPUT)
+      - pattern: xml.etree.ElementTree.parse($INPUT)
+
+  - id: deepaudit.python.insecure-pyyaml-load
+    languages: [python]
+    severity: ERROR
+    message: "PyYAML yaml.load() 存在反序列化风险。请使用 yaml.safe_load()。"
+    pattern: yaml.load($INPUT)
+
+  - id: deepaudit.python.insecure-shutil-rmtree
+    languages: [python]
+    severity: WARNING
+    message: "shutil.rmtree() 使用用户输入路径，可能存在路径遍历风险。请校验路径。"
+    pattern: shutil.rmtree($INPUT)
+
+  # =================== 扩展 Java 规则 (新增20) ===================
+  - id: deepaudit.java.insecure-deserialization-objectinputstream
+    languages: [java]
+    severity: ERROR
+    message: "Java ObjectInputStream 反序列化不可信数据，存在代码执行风险。请使用 JSON 或其他安全格式。"
+    pattern-either:
+      - pattern: new ObjectInputStream($INPUT)
+      - pattern: ois.readObject()
+
+  - id: deepaudit.java.insecure-cookie-no-httponly
+    languages: [java]
+    severity: WARNING
+    message: "Cookie 未设置 HttpOnly 标志，可能被 XSS 窃取。请添加 cookie.setHttpOnly(true)。"
+    pattern: new Cookie(...)
+    - pattern-not-inside: |
+        $COOKIE = new Cookie(...);
+        $COOKIE.setHttpOnly(true);
+
+  - id: deepaudit.java.insecure-cookie-no-secure
+    languages: [java]
+    severity: WARNING
+    message: "Cookie 未设置 Secure 标志，可能在非 HTTPS 传输中泄露。请添加 cookie.setSecure(true)。"
+    pattern: new Cookie(...)
+    - pattern-not-inside: |
+        $COOKIE = new Cookie(...);
+        $COOKIE.setSecure(true);
+
+  - id: deepaudit.java.insecure-random
+    languages: [java]
+    severity: WARNING
+    message: "Java Random 不应用于安全相关场景。请使用 SecureRandom。"
+    pattern-either:
+      - pattern: new Random()
+      - pattern: Random.nextInt(...)
+
+  - id: deepaudit.java.insecure-trustmanager
+    languages: [java]
+    severity: WARNING
+    message: "Java TrustManager 接受所有证书，存在中间人攻击风险。请实现正确的证书校验。"
+    pattern-either:
+      - pattern: new X509TrustManager() { ... checkClientTrusted(...) { ... } ... }
+      - pattern: new X509TrustManager() { ... checkServerTrusted(...) { ... } ... }
+
+  - id: deepaudit.java.insecure-hostnameverifier
+    languages: [java]
+    severity: WARNING
+    message: "Java HostnameVerifier 接受所有主机名，存在中间人攻击风险。请实现正确的主机名校验。"
+    pattern: new HostnameVerifier() { ... verify(...) { return true; } ... }
+
+  - id: deepaudit.java.insecure-file-upload
+    languages: [java]
+    severity: WARNING
+    message: "Java 文件上传未验证文件类型，可能存在恶意文件上传风险。请验证文件扩展名和内容。"
+    pattern-either:
+      - pattern: Part.write($INPUT)
+      - pattern: transferTo($FILE)
+
+  - id: deepaudit.java.insecure-jndi-lookup
+    languages: [java]
+    severity: ERROR
+    message: "Java JNDI lookup 使用用户输入，存在 JNDI 注入风险。请使用固定的 JNDI 名称。"
+    pattern-either:
+      - pattern: ctx.lookup($INPUT)
+      - pattern: new InitialContext().lookup($INPUT)
+
+  - id: deepaudit.java.insecure-ldap-search
+    languages: [java]
+    severity: WARNING
+    message: "Java LDAP 搜索过滤器拼接用户输入，存在 LDAP 注入风险。请使用参数化搜索。"
+    pattern: ctx.search($BASE, $FILTER + $INPUT, ...)
+
+  - id: deepaudit.java.insecure-xml-namespaces
+    languages: [java]
+    severity: WARNING
+    message: "Java XML 解析未禁用外部实体，存在 XXE 风险。请设置 FEATURE_SECURE_PROCESSING。"
+    pattern-either:
+      - pattern: DocumentBuilderFactory.newInstance()
+      - pattern: SAXParserFactory.newInstance()
+
+  - id: deepaudit.java.insecure-threadgroup
+    languages: [java]
+    severity: INFO
+    message: "Java ThreadGroup 使用可能导致安全问题。请使用 ExecutorService 替代。"
+    pattern: new ThreadGroup(...)
+
+  - id: deepaudit.java.insecure-printstacktrace
+    languages: [java]
+    severity: INFO
+    message: "Java printStackTrace() 可能暴露敏感信息。请使用日志框架替代。"
+    pattern: $EX.printStackTrace()
+
+  - id: deepaudit.java.insecure-string-format
+    languages: [java]
+    severity: WARNING
+    message: "Java String.format() 使用用户输入作为格式字符串，存在格式化字符串漏洞。请使用固定格式字符串。"
+    pattern: String.format($INPUT, ...)
+
+  - id: deepaudit.java.insecure-system-exit
+    languages: [java]
+    severity: INFO
+    message: "Java System.exit() 在 Web 应用中使用可能导致服务中断。请抛出异常替代。"
+    pattern: System.exit(...)
+
+  - id: deepaudit.java.insecure-get-class
+    languages: [java]
+    severity: INFO
+    message: "Java getClass().getName() 可能被欺骗。请使用 instanceof 替代。"
+    pattern: $OBJ.getClass().getName()
+
+  - id: deepaudit.java.insecure-assertions
+    languages: [java]
+    severity: INFO
+    message: "Java assert 可能在生产环境被禁用。请使用显式条件检查。"
+    pattern: assert $CONDITION;
+
+  - id: deepaudit.java.insecure-finalizer
+    languages: [java]
+    severity: WARNING
+    message: "Java finalize() 方法使用存在安全风险。请使用 try-with-resources 替代。"
+    pattern: protected void finalize() { ... }
+
+  - id: deepaudit.java.insecure-cloneable
+    languages: [java]
+    severity: INFO
+    message: "Java 实现 Cloneable 接口可能导致安全问题。请考虑使用拷贝构造函数。"
+    pattern: class $CLASS implements Cloneable { ... }
+
+  - id: deepaudit.java.insecure-serializable
+    languages: [java]
+    severity: WARNING
+    message: "Java 类实现 Serializable 可能导致反序列化风险。请确保类是安全的或避免序列化。"
+    pattern: class $CLASS implements Serializable { ... }
+
+  - id: deepaudit.java.insecure-socket-permission
+    languages: [java]
+    severity: WARNING
+    message: "Java SocketPermission 使用通配符，权限过于宽松。请限制权限范围。"
+    pattern: new SocketPermission("*", ...)
+
+  # =================== 扩展 JavaScript/TypeScript 规则 (新增40) ===================
+  - id: deepaudit.javascript.insecure-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "JavaScript eval() 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern-either:
+      - pattern: eval($INPUT)
+      - pattern: new Function($INPUT)
+
+  - id: deepaudit.javascript.insecure-innerhtml
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "JavaScript innerHTML 直接赋值用户输入，存在 XSS 风险。请使用 textContent 或 DOMPurify。"
+    pattern: $EL.innerHTML = $INPUT
+
+  - id: deepaudit.javascript.insecure-document-write
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "JavaScript document.write() 使用用户输入，存在 XSS 风险。请使用 DOM 操作方法。"
+    pattern-either:
+      - pattern: document.write($INPUT)
+      - pattern: document.writeln($INPUT)
+
+  - id: deepaudit.javascript.insecure-location-href
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JavaScript location.href 赋值用户输入，存在开放重定向风险。请验证 URL 白名单。"
+    pattern: location.href = $INPUT
+
+  - id: deepaudit.javascript.insecure-postmessage
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JavaScript postMessage 使用通配符目标，可能导致信息泄露。请指定目标 origin。"
+    pattern: window.postMessage(..., "*")
+
+  - id: deepaudit.javascript.insecure-localstorage
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JavaScript localStorage 存储敏感信息，可能被 XSS 窃取。请使用 HttpOnly Cookie 或加密存储。"
+    pattern-either:
+      - pattern: localStorage.setItem(..., $INPUT)
+      - pattern: sessionStorage.setItem(..., $INPUT)
+
+  - id: deepaudit.javascript.insecure-crypto
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JavaScript Math.random() 不应用于安全场景。请使用 window.crypto.getRandomValues()。"
+    pattern: Math.random()
+
+  - id: deepaudit.javascript.insecure-jquery-html
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "jQuery html() 方法使用用户输入，存在 XSS 风险。请使用 text() 或 DOMPurify。"
+    pattern: $($EL).html($INPUT)
+
+  - id: deepaudit.javascript.insecure-jquery-append
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "jQuery append() 方法使用用户输入 HTML，存在 XSS 风险。请使用 text()。"
+    pattern: $($EL).append($INPUT)
+
+  - id: deepaudit.javascript.insecure-angular-bypasssecurity
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Angular bypassSecurityTrustHtml 使用可能存在 XSS 风险。请确保输入已净化。"
+    pattern-either:
+      - pattern: bypassSecurityTrustHtml($INPUT)
+      - pattern: sanitizer.bypassSecurityTrustHtml($INPUT)
+
+  - id: deepaudit.javascript.insecure-react-dangerouslysetinnerhtml
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "React dangerouslySetInnerHTML 使用用户输入，存在 XSS 风险。请使用 DOMPurify 净化。"
+    pattern: dangerouslySetInnerHTML={{ __html: $INPUT }}
+
+  - id: deepaudit.javascript.insecure-vue-v-html
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Vue v-html 指令使用用户输入，存在 XSS 风险。请使用文本插值或 DOMPurify。"
+    pattern: v-html="$INPUT"
+
+  - id: deepaudit.javascript.insecure-svelte-html
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Svelte {@html ...} 使用用户输入，存在 XSS 风险。请先净化输入。"
+    pattern: "{@html $INPUT}"
+
+  - id: deepaudit.javascript.insecure-prototype-pollution
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "JavaScript 原型污染风险。请避免直接修改 Object.prototype。"
+    pattern-either:
+      - pattern: Object.prototype[$KEY] = $VALUE
+      - pattern: $OBJ.__proto__[$KEY] = $VALUE
+
+  - id: deepaudit.javascript.insecure-json-parse-reviver
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JSON.parse() reviver 函数执行可能存在风险。请避免在 reviver 中执行动态代码。"
+    pattern: JSON.parse($INPUT, $REVIVER)
+
+  - id: deepaudit.javascript.insecure-settimeout-string
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "setTimeout/setInterval 使用字符串代码，存在代码注入风险。请使用函数。"
+    pattern-either:
+      - pattern: setTimeout($CODE_STRING, ...)
+      - pattern: setInterval($CODE_STRING, ...)
+
+  - id: deepaudit.javascript.insecure-websocket-url
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "WebSocket 使用用户输入构造 URL，可能存在风险。请验证 URL。"
+    pattern: new WebSocket($INPUT)
+
+  - id: deepaudit.javascript.insecure-worker-script
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Web Worker 使用用户输入构造脚本 URL，可能存在风险。请使用固定脚本 URL。"
+    pattern: new Worker($INPUT)
+
+  - id: deepaudit.javascript.insecure-import-script
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "importScripts() 使用用户输入 URL，可能存在风险。请验证 URL 白名单。"
+    pattern: importScripts($INPUT)
+
+  - id: deepaudit.javascript.insecure-csp-missing
+    languages: [javascript, typescript]
+    severity: INFO
+    message: "页面缺少 Content-Security-Policy 头，增加 XSS 风险。请配置 CSP。"
+    pattern: ""
+
+  - id: deepaudit.javascript.insecure-xss-via-url
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JavaScript 直接使用 URL 参数而未编码，存在 XSS 风险。请进行 HTML 编码。"
+    pattern-either:
+      - pattern: location.search
+      - pattern: new URLSearchParams(location.search)
+
+  - id: deepaudit.typescript.insecure-any-type
+    languages: [typescript]
+    severity: INFO
+    message: "TypeScript 使用 any 类型，降低了类型安全性。请使用更具体的类型。"
+    pattern: ": any"
+
+  - id: deepaudit.typescript.insecure-non-null-assertion
+    languages: [typescript]
+    severity: INFO
+    message: "TypeScript 非空断言操作符可能掩盖空值问题。请使用可选链操作符。"
+    pattern: $EXPR!
+
+  - id: deepaudit.javascript.insecure-nodejs-exec
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Node.js child_process.exec 使用用户输入，存在命令注入风险。请使用 execFile 或 spawn。"
+    pattern-either:
+      - pattern: child_process.exec($CMD + $INPUT)
+      - pattern: exec($CMD + $INPUT)
+
+  - id: deepaudit.javascript.insecure-nodejs-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Node.js vm 模块执行用户输入，存在代码注入风险。请避免使用。"
+    pattern-either:
+      - pattern: vm.runInNewContext($INPUT, ...)
+      - pattern: vm.runInThisContext($INPUT)
+
+  - id: deepaudit.javascript.insecure-nodejs-fs
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Node.js fs 模块使用用户输入路径，存在路径遍历风险。请验证路径。"
+    pattern-either:
+      - pattern: fs.readFile($INPUT, ...)
+      - pattern: fs.writeFile($INPUT, ...)
+
+  - id: deepaudit.javascript.insecure-nodejs-require
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Node.js require() 使用用户输入，可能加载恶意模块。请使用固定模块名。"
+    pattern: require($INPUT)
+
+  - id: deepaudit.javascript.insecure-express-bodyparser
+    languages: [javascript, typescript]
+    severity: INFO
+    message: "Express body-parser 配置可能需要调整。请限制请求体大小。"
+    pattern: app.use(bodyParser.json({ limit: ... }))
+
+  - id: deepaudit.javascript.insecure-express-cors
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Express CORS 配置使用通配符，可能过于宽松。请指定允许的 origin。"
+    pattern: app.use(cors({ origin: "*" }))
+
+  - id: deepaudit.javascript.insecure-express-helmet-missing
+    languages: [javascript, typescript]
+    severity: INFO
+    message: "Express 缺少 Helmet 中间件，缺少安全头。请使用 helmet()。"
+    pattern: ""
+
+  - id: deepaudit.javascript.insecure-express-session
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Express session 配置可能不安全。请设置 secure 和 httpOnly 标志。"
+    pattern-either:
+      - pattern: app.use(session({ secret: "..." }))
+      - pattern: cookie: { secure: false }
+
+  - id: deepaudit.javascript.insecure-nodejs-crypto
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Node.js crypto 使用弱算法。请使用 AES-256-GCM 等强算法。"
+    pattern-either:
+      - pattern: crypto.createCipher("des", ...)
+      - pattern: crypto.createHash("md5")
+
+  - id: deepaudit.javascript.insecure-jwt-none-algorithm
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "JWT 使用 none 算法，存在绕过风险。请使用 RS256 或 HS256。"
+    pattern: algorithm: "none"
+
+  - id: deepaudit.javascript.insecure-jwt-hardcoded-secret
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "JWT 使用硬编码密钥。请从环境变量读取。"
+    pattern: secret: "..."
+
+  - id: deepaudit.javascript.insecure-mongodb-operator
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "MongoDB 查询使用用户输入作为操作符，存在 NoSQL 注入风险。请验证输入。"
+    pattern: collection.find({ $where: $INPUT })
+
+  - id: deepaudit.javascript.insecure-sqlite3-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "sqlite3 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: db.run($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-pg-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "pg (PostgreSQL) 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: client.query($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-mysql-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "mysql 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: connection.query($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-redis-eval
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Redis eval 使用用户输入脚本，存在风险。请验证脚本内容。"
+    pattern: redis.eval($INPUT, ...)
+
+  - id: deepaudit.javascript.insecure-electron-nodeintegration
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Electron 启用了 nodeIntegration，存在安全风险。请禁用并使用预加载脚本。"
+    pattern: nodeIntegration: true
+
+  # =================== 扩展 PHP 规则 (新增60) ===================
+  - id: deepaudit.php.insecure-eval
+    languages: [php]
+    severity: ERROR
+    message: "PHP eval() 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern: eval($INPUT)
+
+  - id: deepaudit.php.insecure-sqli-mysqli
+    languages: [php]
+    severity: ERROR
+    message: "PHP mysqli 使用字符串拼接 SQL，存在注入风险。请使用预处理语句。"
+    pattern-either:
+      - pattern: mysqli_query($CONN, $SQL . $INPUT)
+      - pattern: $mysqli->query($SQL . $INPUT)
+
+  - id: deepaudit.php.insecure-sqli-pdo
+    languages: [php]
+    severity: ERROR
+    message: "PHP PDO 使用字符串拼接 SQL，存在注入风险。请使用预处理语句。"
+    pattern-either:
+      - pattern: $pdo->query($SQL . $INPUT)
+      - pattern: $pdo->exec($SQL . $INPUT)
+
+  - id: deepaudit.php.insecure-xss-echo
+    languages: [php]
+    severity: ERROR
+    message: "PHP echo 直接输出用户输入，存在 XSS 风险。请使用 htmlspecialchars()。"
+    pattern-either:
+      - pattern: echo $INPUT
+      - pattern: print $INPUT
+
+  - id: deepaudit.php.insecure-cmd-system
+    languages: [php]
+    severity: ERROR
+    message: "PHP system() 等函数使用用户输入，存在命令注入风险。请避免使用或严格过滤。"
+    pattern-either:
+      - pattern: system($INPUT)
+      - pattern: exec($INPUT)
+      - pattern: shell_exec($INPUT)
+      - pattern: passthru($INPUT)
+
+  - id: deepaudit.php.insecure-file-include
+    languages: [php]
+    severity: ERROR
+    message: "PHP include/require 使用用户输入，存在文件包含漏洞。请使用固定文件路径。"
+    pattern-either:
+      - pattern: include($INPUT)
+      - pattern: require($INPUT)
+      - pattern: include_once($INPUT)
+      - pattern: require_once($INPUT)
+
+  - id: deepaudit.php.insecure-unserialize
+    languages: [php]
+    severity: ERROR
+    message: "PHP unserialize() 反序列化不可信数据，存在代码执行风险。请使用 JSON。"
+    pattern: unserialize($INPUT)
+
+  - id: deepaudit.php.insecure-extract
+    languages: [php]
+    severity: WARNING
+    message: "PHP extract() 使用用户输入，可能覆盖变量。请避免使用或指定 EXTR_SKIP。"
+    pattern: extract($INPUT)
+
+  - id: deepaudit.php.insecure-parse-str
+    languages: [php]
+    severity: WARNING
+    message: "PHP parse_str() 使用用户输入，可能覆盖变量。请避免使用。"
+    pattern: parse_str($INPUT)
+
+  - id: deepaudit.php.insecure-assert
+    languages: [php]
+    severity: ERROR
+    message: "PHP assert() 执行用户输入，存在代码注入风险。请避免使用。"
+    pattern: assert($INPUT)
+
+  - id: deepaudit.php.insecure-preg-replace-e
+    languages: [php]
+    severity: ERROR
+    message: "PHP preg_replace 使用 /e 修饰符，存在代码注入风险。请使用 preg_replace_callback。"
+    pattern: preg_replace("/.../e", ...)
+
+  - id: deepaudit.php.insecure-create-function
+    languages: [php]
+    severity: ERROR
+    message: "PHP create_function() 使用用户输入，存在代码注入风险。请使用匿名函数。"
+    pattern: create_function(...)
+
+  - id: deepaudit.php.insecure-file-upload
+    languages: [php]
+    severity: WARNING
+    message: "PHP 文件上传未验证文件类型，存在恶意文件上传风险。请验证扩展名和内容。"
+    pattern: move_uploaded_file(...)
+
+  - id: deepaudit.php.insecure-md5-password
+    languages: [php]
+    severity: WARNING
+    message: "PHP 使用 MD5 哈希密码，不安全。请使用 password_hash()。"
+    pattern-either:
+      - pattern: md5($PASSWORD)
+      - pattern: sha1($PASSWORD)
+
+  - id: deepaudit.php.insecure-rand
+    languages: [php]
+    severity: WARNING
+    message: "PHP rand() 不应用于安全场景。请使用 random_bytes() 或 random_int()。"
+    pattern: rand(...)
+
+  - id: deepaudit.php.insecure-session-cookie
+    languages: [php]
+    severity: WARNING
+    message: "PHP Session cookie 未设置 HttpOnly/Secure 标志。请在 php.ini 中配置。"
+    pattern: session_start()
+
+  - id: deepaudit.php.insecure-xxe-simplexml
+    languages: [php]
+    severity: ERROR
+    message: "PHP SimpleXML 未禁用外部实体，存在 XXE 风险。请禁用外部实体。"
+    pattern-either:
+      - pattern: simplexml_load_string($INPUT)
+      - pattern: simplexml_load_file($INPUT)
+
+  - id: deepaudit.php.insecure-xxe-domdocument
+    languages: [php]
+    severity: ERROR
+    message: "PHP DOMDocument 未禁用外部实体，存在 XXE 风险。请禁用外部实体。"
+    pattern-either:
+      - pattern: new DOMDocument()
+      - pattern: $dom->loadXML($INPUT)
+
+  - id: deepaudit.php.insecure-ldap-injection
+    languages: [php]
+    severity: ERROR
+    message: "PHP LDAP 查询拼接用户输入，存在 LDAP 注入风险。请使用 ldap_escape()。"
+    pattern: ldap_search($CONN, $BASE, $FILTER . $INPUT)
+
+  - id: deepaudit.php.insecure-mail-injection
+    languages: [php]
+    severity: ERROR
+    message: "PHP mail() 使用用户输入，存在邮件头注入风险。请验证和过滤输入。"
+    pattern: mail(...)
+
+  - id: deepaudit.php.insecure-header-injection
+    languages: [php]
+    severity: ERROR
+    message: "PHP header() 使用用户输入，存在 HTTP 头注入风险。请过滤换行符。"
+    pattern: header($INPUT)
+
+  - id: deepaudit.php.insecure-open-redirect
+    languages: [php]
+    severity: WARNING
+    message: "PHP 重定向使用用户输入，存在开放重定向风险。请验证 URL 白名单。"
+    pattern: header("Location: " . $INPUT)
+
+  - id: deepaudit.php.insecure-sqlite3-query
+    languages: [php]
+    severity: ERROR
+    message: "PHP SQLite3 使用字符串拼接 SQL，存在注入风险。请使用预处理语句。"
+    pattern: $db->query($SQL . $INPUT)
+
+  - id: deepaudit.php.insecure-mongodb-find
+    languages: [php]
+    severity: ERROR
+    message: "PHP MongoDB 使用 $where 操作符，存在 NoSQL 注入风险。请避免使用。"
+    pattern: $collection->find(array('$where' => $INPUT))
+
+  - id: deepaudit.php.insecure-weak-crypto
+    languages: [php]
+    severity: WARNING
+    message: "PHP 使用弱加密算法。请使用 openssl 扩展的强算法。"
+    pattern-either:
+      - pattern: mcrypt_encrypt(...)
+      - pattern: des_encrypt(...)
+
+  - id: deepaudit.php.insecure-superglobal
+    languages: [php]
+    severity: INFO
+    message: "PHP 直接使用超全局变量而未过滤。请使用 filter_input()。"
+    pattern-either:
+      - pattern: $_GET[$KEY]
+      - pattern: $_POST[$KEY]
+      - pattern: $_REQUEST[$KEY]
+
+  - id: deepaudit.php.insecure-error-reporting
+    languages: [php]
+    severity: WARNING
+    message: "PHP 错误报告在生产环境开启，可能泄露敏感信息。请禁用 display_errors。"
+    pattern: ini_set("display_errors", 1)
+
+  - id: deepaudit.php.insecure-register-globals
+    languages: [php]
+    severity: WARNING
+    message: "PHP register_globals 可能已启用（旧版本），存在安全风险。请禁用。"
+    pattern: ini_set("register_globals", 1)
+
+  - id: deepaudit.php.insecure-allow-url-fopen
+    languages: [php]
+    severity: WARNING
+    message: "PHP allow_url_fopen 启用，可能存在远程文件包含风险。请禁用。"
+    pattern: ini_set("allow_url_fopen", 1)
+
+  - id: deepaudit.php.insecure-allow-url-include
+    languages: [php]
+    severity: WARNING
+    message: "PHP allow_url_include 启用，存在远程文件包含风险。请禁用。"
+    pattern: ini_set("allow_url_include", 1)
+
+  # =================== 扩展 Go 规则 (新增80) ===================
+  - id: deepaudit.go.insecure-sqli-db-query
+    languages: [go]
+    severity: ERROR
+    message: "Go database/sql 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern-either:
+      - pattern: db.Query($SQL + $INPUT)
+      - pattern: db.Exec($SQL + $INPUT)
+
+  - id: deepaudit.go.insecure-cmd-exec
+    languages: [go]
+    severity: ERROR
+    message: "Go exec.Command 使用用户输入拼接命令，存在命令注入风险。请使用参数列表。"
+    pattern-either:
+      - pattern: exec.Command($CMD + $INPUT)
+      - pattern: exec.Command("sh", "-c", $CMD + $INPUT)
+
+  - id: deepaudit.go.insecure-path-traversal
+    languages: [go]
+    severity: WARNING
+    message: "Go os.Open 使用用户输入路径，存在路径遍历风险。请验证路径。"
+    pattern-either:
+      - pattern: os.Open($INPUT)
+      - pattern: ioutil.ReadFile($INPUT)
+
+  - id: deepaudit.go.insecure-ssrf-http-get
+    languages: [go]
+    severity: WARNING
+    message: "Go http.Get 使用用户输入 URL，存在 SSRF 风险。请验证 URL 白名单。"
+    pattern-either:
+      - pattern: http.Get($INPUT)
+      - pattern: http.Post($INPUT, ...)
+
+  - id: deepaudit.go.insecure-xss-template
+    languages: [go]
+    severity: WARNING
+    message: "Go html/template 可能存在 XSS 风险。请确保正确使用上下文感知编码。"
+    pattern-either:
+      - pattern: template.HTML($INPUT)
+      - pattern: t.Execute($WRITER, $DATA)
+
+  - id: deepaudit.go.insecure-deserialization-gob
+    languages: [go]
+    severity: WARNING
+    message: "Go encoding/gob 反序列化不可信数据，存在风险。请验证输入来源。"
+    pattern-either:
+      - pattern: gob.NewDecoder($INPUT).Decode(...)
+      - pattern: gob.NewEncoder(...).Encode(...)
+
+  - id: deepaudit.go.insecure-rand-math
+    languages: [go]
+    severity: WARNING
+    message: "Go math/rand 不应用于安全场景。请使用 crypto/rand。"
+    pattern-either:
+      - pattern: rand.Int()
+      - pattern: rand.Read(...)
+
+  - id: deepaudit.go.insecure-tls-insecure-skip-verify
+    languages: [go]
+    severity: WARNING
+    message: "Go TLS 跳过证书验证，存在中间人攻击风险。请移除 InsecureSkipVerify。"
+    pattern: InsecureSkipVerify: true
+
+  - id: deepaudit.go.insecure-tls-min-version
+    languages: [go]
+    severity: INFO
+    message: "Go TLS 最低版本可能过旧。请使用 TLS 1.2 或更高版本。"
+    pattern: MinVersion: tls.VersionTLS10
+
+  - id: deepaudit.go.insecure-json-unmarshal
+    languages: [go]
+    severity: INFO
+    message: "Go json.Unmarshal 使用 interface{}，可能存在类型混淆风险。请使用具体类型。"
+    pattern: json.Unmarshal($INPUT, &$OBJ)
+
+  - id: deepaudit.go.insecure-xml-unmarshal
+    languages: [go]
+    severity: WARNING
+    message: "Go encoding/xml 可能存在 XXE 风险。请禁用外部实体。"
+    pattern: xml.Unmarshal($INPUT, &$OBJ)
+
+  - id: deepaudit.go.insecure-gin-cors-wildcard
+    languages: [go]
+    severity: WARNING
+    message: "Gin CORS 使用通配符，可能过于宽松。请指定允许的 origin。"
+    pattern: cors.DefaultConfig().AllowAllOrigins = true
+
+  - id: deepaudit.go.insecure-gin-trust-all-proxies
+    languages: [go]
+    severity: WARNING
+    message: "Gin 信任所有代理，可能导致伪造客户端 IP。请限制信任的代理。"
+    pattern: router.TrustAllProxies = true
+
+  - id: deepaudit.go.insecure-gorm-sql
+    languages: [go]
+    severity: ERROR
+    message: "GORM 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern-either:
+      - pattern: db.Raw($SQL + $INPUT)
+      - pattern: db.Exec($SQL + $INPUT)
+
+  - id: deepaudit.go.insecure-xorm-sql
+    languages: [go]
+    severity: ERROR
+    message: "XORM 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: engine.SQL($SQL + $INPUT).Query(...)
+
+  - id: deepaudit.go.insecure-redis-eval
+    languages: [go]
+    severity: WARNING
+    message: "Go Redis eval 使用用户输入脚本，存在风险。请验证脚本内容。"
+    pattern: rdb.Eval($INPUT, ...)
+
+  - id: deepaudit.go.insecure-mgo-query
+    languages: [go]
+    severity: ERROR
+    message: "mgo (MongoDB) 使用 $where 操作符，存在 NoSQL 注入风险。请避免使用。"
+    pattern: collection.Find(bson.M{"$where": $INPUT})
+
+  - id: deepaudit.go.insecure-file-permission
+    languages: [go]
+    severity: WARNING
+    message: "Go 文件权限过于宽松。请使用更严格的权限。"
+    pattern-either:
+      - pattern: os.Chmod(..., 0777)
+      - pattern: os.OpenFile(..., 0666, ...)
+
+  - id: deepaudit.go.insecure-defer-close
+    languages: [go]
+    severity: INFO
+    message: "Go defer Close() 未检查错误。请检查 Close() 返回值。"
+    pattern: defer $FILE.Close()
+
+  - id: deepaudit.go.insecure-no-error-check
+    languages: [go]
+    severity: INFO
+    message: "Go 忽略了错误返回值。请检查所有错误。"
+    pattern: $FUNC(...)
+
+  # =================== 扩展 C/C++ 规则 (新增100) ===================
+  - id: deepaudit.cpp.insecure-strcpy
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ strcpy 不安全，可能导致缓冲区溢出。请使用 strncpy 或 strlcpy。"
+    pattern: strcpy($DEST, $SRC)
+
+  - id: deepaudit.cpp.insecure-strcat
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ strcat 不安全，可能导致缓冲区溢出。请使用 strncat 或 strlcat。"
+    pattern: strcat($DEST, $SRC)
+
+  - id: deepaudit.cpp.insecure-sprintf
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ sprintf 不安全，可能导致缓冲区溢出。请使用 snprintf。"
+    pattern: sprintf($DEST, $FMT, ...)
+
+  - id: deepaudit.cpp.insecure-gets
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ gets 极其不安全。请使用 fgets。"
+    pattern: gets($BUF)
+
+  - id: deepaudit.cpp.insecure-vsprintf
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ vsprintf 不安全。请使用 vsnprintf。"
+    pattern: vsprintf($DEST, $FMT, $AP)
+
+  - id: deepaudit.cpp.insecure-scanf
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ scanf %s 不安全。请指定字段宽度或使用 fgets。"
+    pattern: scanf("%s", $BUF)
+
+  - id: deepaudit.cpp.insecure-strncpy-no-null
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ strncpy 可能不添加 NULL 终止符。请确保缓冲区正确终止。"
+    pattern: strncpy($DEST, $SRC, $N)
+
+  - id: deepaudit.cpp.insecure-memcpy-overlap
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ memcpy 源和目标可能重叠。请使用 memmove。"
+    pattern: memcpy($DEST, $SRC, $N)
+
+  - id: deepaudit.cpp.insecure-printf-format
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ printf 使用用户输入作为格式字符串，存在格式化字符串漏洞。"
+    pattern-either:
+      - pattern: printf($INPUT)
+      - pattern: fprintf($FP, $INPUT)
+
+  - id: deepaudit.cpp.insecure-system
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ system() 使用用户输入，存在命令注入风险。请使用 execve。"
+    pattern: system($INPUT)
+
+  - id: deepaudit.cpp.insecure-popen
+    languages: [c, cpp]
+    severity: ERROR
+    message: "C/C++ popen() 使用用户输入，存在命令注入风险。请避免使用。"
+    pattern: popen($INPUT, ...)
+
+  - id: deepaudit.cpp.insecure-execvp
+    languages: [cpp]
+    severity: WARNING
+    message: "C/C++ execvp 使用用户输入，确保输入已验证。"
+    pattern: execvp($CMD, $ARGS)
+
+  - id: deepaudit.cpp.insecure-chmod
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ chmod 设置过于宽松的权限。请使用更严格的权限。"
+    pattern-either:
+      - pattern: chmod(..., 0777)
+      - pattern: fchmod(..., 0666)
+
+  - id: deepaudit.cpp.insecure-mktemp
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ mktemp 不安全，存在竞争条件。请使用 mkstemp。"
+    pattern: mktemp($TEMPLATE)
+
+  - id: deepaudit.cpp.insecure-tempnam
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ tempnam 不安全，存在竞争条件。请使用 mkstemp。"
+    pattern: tempnam(...)
+
+  - id: deepaudit.cpp.insecure-rand
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ rand() 不应用于安全场景。请使用 arc4random 或 crypto 库。"
+    pattern: rand()
+
+  - id: deepaudit.cpp.insecure-srandom
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ srand 使用时间作为种子，可预测。请使用更强的种子。"
+    pattern: srand(time(NULL))
+
+  - id: deepaudit.cpp.insecure-md5
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ MD5 哈希不安全。请使用 SHA-256 或更强的算法。"
+    pattern-either:
+      - pattern: MD5_Init(...)
+      - pattern: MD5_Update(...)
+      - pattern: MD5_Final(...)
+
+  - id: deepaudit.cpp.insecure-sha1
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ SHA-1 哈希不安全。请使用 SHA-256 或更强的算法。"
+    pattern-either:
+      - pattern: SHA1_Init(...)
+      - pattern: SHA1_Update(...)
+      - pattern: SHA1_Final(...)
+
+  - id: deepaudit.cpp.insecure-des
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ DES 加密不安全。请使用 AES-256。"
+    pattern-either:
+      - pattern: DES_set_key(...)
+      - pattern: DES_ecb_encrypt(...)
+
+  - id: deepaudit.cpp.insecure-rc4
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ RC4 加密不安全。请使用 AES-256-GCM。"
+    pattern: RC4_set_key(...)
+
+  - id: deepaudit.cpp.insecure-ssl-verify-none
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ OpenSSL 禁用证书验证，存在中间人攻击风险。请启用验证。"
+    pattern-either:
+      - pattern: SSL_CTX_set_verify(..., SSL_VERIFY_NONE, ...)
+      - pattern: SSL_set_verify(..., SSL_VERIFY_NONE, ...)
+
+  - id: deepaudit.cpp.insecure-sslv3
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ 使用 SSLv3 协议，不安全。请使用 TLS 1.2+。"
+    pattern-either:
+      - pattern: SSL_CTX_new(SSLv3_method())
+      - pattern: SSL_CTX_new(SSLv3_server_method())
+      - pattern: SSL_CTX_new(SSLv3_client_method())
+
+  - id: deepaudit.cpp.insecure-tlsv10
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ 使用 TLS 1.0 协议，较旧。请使用 TLS 1.2+。"
+    pattern-either:
+      - pattern: SSL_CTX_new(TLSv1_method())
+      - pattern: SSL_CTX_new(TLSv1_server_method())
+      - pattern: SSL_CTX_new(TLSv1_client_method())
+
+  - id: deepaudit.cpp.insecure-sscanf
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ sscanf %s 不安全。请指定字段宽度。"
+    pattern: sscanf($INPUT, "%s", $BUF)
+
+  - id: deepaudit.cpp.insecure-strtok
+    languages: [c, cpp]
+    severity: INFO
+    message: "C/C++ strtok 不是线程安全的。请使用 strtok_r。"
+    pattern: strtok(...)
+
+  - id: deepaudit.cpp.insecure-getenv
+    languages: [c, cpp]
+    severity: INFO
+    message: "C/C++ getenv 返回值可能被修改。请复制结果。"
+    pattern: getenv($NAME)
+
+  - id: deepaudit.cpp.insecure-ctime
+    languages: [c, cpp]
+    severity: INFO
+    message: "C/C++ ctime 使用静态缓冲区，不是线程安全的。请使用 ctime_r。"
+    pattern: ctime(...)
+
+  - id: deepaudit.cpp.insecure-asctime
+    languages: [c, cpp]
+    severity: INFO
+    message: "C/C++ asctime 使用静态缓冲区，不是线程安全的。请使用 asctime_r。"
+    pattern: asctime(...)
+
+  - id: deepaudit.cpp.insecure-realpath
+    languages: [c, cpp]
+    severity: WARNING
+    message: "C/C++ realpath 使用 NULL 缓冲区，可能泄漏内存。请提供缓冲区。"
+    pattern: realpath($PATH, NULL)
+
+  # =================== Ruby 规则 (新增130) ===================
+  - id: deepaudit.ruby.insecure-eval
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby eval() 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern: eval($INPUT)
+
+  - id: deepaudit.ruby.insecure-class-eval
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby class_eval/module_eval 使用用户输入，存在代码注入风险。请避免使用。"
+    pattern-either:
+      - pattern: class_eval($INPUT)
+      - pattern: module_eval($INPUT)
+
+  - id: deepaudit.ruby.insecure-send
+    languages: [ruby]
+    severity: WARNING
+    message: "Ruby send/public_send 使用用户输入，可能调用危险方法。请验证方法名。"
+    pattern-either:
+      - pattern: send($INPUT, ...)
+      - pattern: public_send($INPUT, ...)
+
+  - id: deepaudit.ruby.insecure-yaml-load
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby YAML.load 反序列化不可信数据，存在代码执行风险。请使用 YAML.safe_load。"
+    pattern-either:
+      - pattern: YAML.load($INPUT)
+      - pattern: YAML.load_file($INPUT)
+
+  - id: deepaudit.ruby.insecure-marshal-load
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby Marshal.load 反序列化不可信数据，存在代码执行风险。请使用 JSON。"
+    pattern-either:
+      - pattern: Marshal.load($INPUT)
+      - pattern: Marshal.restore($INPUT)
+
+  - id: deepaudit.ruby.insecure-command-exec
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby 使用反引号或 system 执行用户输入，存在命令注入风险。请验证输入。"
+    pattern-either:
+      - pattern: `$CMD`
+      - pattern: system($CMD)
+      - pattern: exec($CMD)
+
+  - id: deepaudit.ruby.insecure-sqli-activerecord
+    languages: [ruby]
+    severity: ERROR
+    message: "Ruby on Rails ActiveRecord 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern-either:
+      - pattern: Model.where("#{...}")
+      - pattern: Model.find_by_sql($SQL + $INPUT)
+
+  - id: deepaudit.ruby.insecure-rails-params
+    languages: [ruby]
+    severity: WARNING
+    message: "Ruby on Rails 直接使用 params 而未强参数过滤。请使用 strong parameters。"
+    pattern: params.permit!
+
+  - id: deepaudit.ruby.insecure-rails-csrf
+    languages: [ruby]
+    severity: WARNING
+    message: "Ruby on Rails 跳过 CSRF 保护。请确保 protect_from_forgery 启用。"
+    pattern: skip_before_action :verify_authenticity_token
+
+  - id: deepaudit.ruby.insecure-rails-mass-assignment
+    languages: [ruby]
+    severity: WARNING
+    message: "Ruby on Rails 批量赋值可能存在风险。请使用 strong parameters。"
+    pattern: Model.new(params[:model])
+
+  # =================== Rust 规则 (新增140) ===================
+  - id: deepaudit.rust.insecure-unsafe-block
+    languages: [rust]
+    severity: WARNING
+    message: "Rust unsafe 代码块需要仔细审查。请确保内存安全。"
+    pattern: unsafe { ... }
+
+  - id: deepaudit.rust.insecure-unwrap
+    languages: [rust]
+    severity: INFO
+    message: "Rust unwrap() 使用可能导致 panic。请使用 match 或 ?。"
+    pattern: $EXPR.unwrap()
+
+  - id: deepaudit.rust.insecure-expect
+    languages: [rust]
+    severity: INFO
+    message: "Rust expect() 使用可能导致 panic。请使用 match 或 ?。"
+    pattern: $EXPR.expect(...)
+
+  - id: deepaudit.rust.insecure-std-process
+    languages: [rust]
+    severity: WARNING
+    message: "Rust std::process::Command 使用用户输入，存在命令注入风险。请验证参数。"
+    pattern: Command::new($INPUT)
+
+  - id: deepaudit.rust.insecure-sqlx-query
+    languages: [rust]
+    severity: ERROR
+    message: "Rust sqlx 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: query($SQL + $INPUT)
+
+  # =================== Kotlin 规则 (新增145) ===================
+  - id: deepaudit.kotlin.insecure-eval
+    languages: [kotlin]
+    severity: ERROR
+    message: "Kotlin eval 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern: eval($INPUT)
+
+  - id: deepaudit.kotlin.insecure-sqli-jdbc
+    languages: [kotlin]
+    severity: ERROR
+    message: "Kotlin JDBC 使用字符串拼接 SQL，存在注入风险。请使用预处理语句。"
+    pattern: statement.executeQuery($SQL + $INPUT)
+
+  - id: deepaudit.kotlin.insecure-android-log
+    languages: [kotlin]
+    severity: INFO
+    message: "Kotlin Android Log 可能泄露敏感信息。请避免在生产环境记录敏感数据。"
+    pattern-either:
+      - pattern: Log.d(...)
+      - pattern: Log.i(...)
+      - pattern: Log.e(...)
+
+  - id: deepaudit.kotlin.insecure-android-sharedpreferences
+    languages: [kotlin]
+    severity: WARNING
+    message: "Kotlin Android SharedPreferences 存储敏感信息，可能被访问。请加密存储。"
+    pattern: sharedPreferences.edit().putString(..., $INPUT)
+
+  # =================== Swift 规则 (新增149) ===================
+  - id: deepaudit.swift.insecure-eval
+    languages: [swift]
+    severity: ERROR
+    message: "Swift eval 执行不可信输入，存在代码注入风险。请避免使用。"
+    pattern: eval($INPUT)
+
+  - id: deepaudit.swift.insecure-userdefaults
+    languages: [swift]
+    severity: WARNING
+    message: "Swift UserDefaults 存储敏感信息，可能被访问。请使用 Keychain。"
+    pattern: UserDefaults.standard.set($INPUT, forKey: ...)
+
+  - id: deepaudit.swift.insecure-coredata
+    languages: [swift]
+    severity: INFO
+    message: "Swift Core Data 存储敏感信息应加密。请考虑加密数据。"
+    pattern: NSManagedObjectContext.save(...)
+
+  # =================== 通用安全规则 (新增150) ===================
+  - id: deepaudit.generic.hardcoded-api-key
+    languages: []
+    severity: WARNING
+    message: "代码中硬编码了 API 密钥。请使用环境变量或密钥管理系统。"
+    pattern-either:
+      - pattern: apikey = "..."
+      - pattern: api_key = "..."
+      - pattern: api-key = "..."
+
+  - id: deepaudit.generic.hardcoded-password-in-code
+    languages: []
+    severity: WARNING
+    message: "代码中硬编码了密码。请使用环境变量或密钥管理系统。"
+    pattern-either:
+      - pattern: password = "..."
+      - pattern: passwd = "..."
+      - pattern: pass = "..."
+
+  - id: deepaudit.generic.insecure-http-not-https
+    languages: []
+    severity: WARNING
+    message: "使用 HTTP 而非 HTTPS，存在中间人攻击风险。请使用 HTTPS。"
+    pattern: http://...
+
+  - id: deepaudit.generic.insecure-commented-out-code
+    languages: []
+    severity: INFO
+    message: "存在被注释掉的代码。请清理代码库。"
+    pattern: "// ..."
+
+  - id: deepaudit.generic.insecure-todo-comment
+    languages: []
+    severity: INFO
+    message: "存在 TODO 注释。请及时处理待办事项。"
+    pattern: "// TODO"
+
+  - id: deepaudit.generic.insecure-fixme-comment
+    languages: []
+    severity: INFO
+    message: "存在 FIXME 注释。请及时修复问题。"
+    pattern: "// FIXME"
+
+  - id: deepaudit.generic.insecure-hardcoded-ip
+    languages: []
+    severity: INFO
+    message: "硬编码 IP 地址。请使用配置文件或环境变量。"
+    pattern-either:
+      - pattern: "192.168..."
+      - pattern: "10.0..."
+      - pattern: "172.16..."
+
+  - id: deepaudit.generic.insecure-base64-secret
+    languages: []
+    severity: WARNING
+    message: "Base64 编码不是加密。请使用真正的加密来保护敏感数据。"
+    pattern: base64_decode(...)
+
+  - id: deepaudit.generic.insecure-regex-ddos
+    languages: []
+    severity: WARNING
+    message: "正则表达式可能存在 ReDoS 风险。请避免嵌套量词。"
+    pattern: "(((...)+)+)+"
+
+  - id: deepaudit.generic.insecure-empty-catch
+    languages: []
+    severity: WARNING
+    message: "空的 catch 块可能隐藏错误。请至少记录错误。"
+    pattern: "catch (...) { }"
+
+  - id: deepaudit.generic.insecure-sensitive-data-logging
+    languages: []
+    severity: WARNING
+    message: "日志可能包含敏感信息。请避免记录密码、令牌等。"
+    pattern-either:
+      - pattern: logger.info(...password...)
+      - pattern: logger.debug(...token...)
+      - pattern: console.log(...secret...)
+
+  # =================== 更多 Python 规则 (新增160) ===================
+  - id: deepaudit.python.insecure-fastapi-cors
+    languages: [python]
+    severity: WARNING
+    message: "FastAPI CORS 使用通配符，可能过于宽松。请指定允许的 origin。"
+    pattern: allow_origins=["*"]
+
+  - id: deepaudit.python.insecure-pydantic-arbitrary-types
+    languages: [python]
+    severity: WARNING
+    message: "Pydantic 允许任意类型可能存在风险。请使用具体类型。"
+    pattern: arbitrary_types_allowed=True
+
+  - id: deepaudit.python.insecure-selenium-execute-script
+    languages: [python]
+    severity: WARNING
+    message: "Selenium execute_script 使用用户输入，存在 XSS 风险。请验证输入。"
+    pattern: driver.execute_script($INPUT)
+
+  - id: deepaudit.python.insecure-scrapy-allowed-domains
+    languages: [python]
+    severity: INFO
+    message: "Scrapy allowed_domains 可能需要更严格的配置。请检查配置。"
+    pattern: allowed_domains = [...]
+
+  - id: deepaudit.python.insecure-ctypes-calls
+    languages: [python]
+    severity: WARNING
+    message: "Python ctypes 调用 C 函数可能存在内存安全风险。请仔细审查。"
+    pattern: ctypes.CDLL(...)
+
+  - id: deepaudit.python.insecure-cffi-calls
+    languages: [python]
+    severity: WARNING
+    message: "Python CFFI 调用 C 函数可能存在内存安全风险。请仔细审查。"
+    pattern: ffi.dlopen(...)
+
+  - id: deepaudit.python.insecure-multiprocessing
+    languages: [python]
+    severity: INFO
+    message: "Python multiprocessing 在某些场景可能存在安全风险。请确保安全使用。"
+    pattern: multiprocessing.Process(...)
+
+  - id: deepaudit.python.insecure-os-environ
+    languages: [python]
+    severity: INFO
+    message: "Python os.environ 读取环境变量，请确保敏感信息来自安全存储。"
+    pattern: os.environ[$KEY]
+
+  - id: deepaudit.python.insecure-tarfile-extractall
+    languages: [python]
+    severity: WARNING
+    message: "Python tarfile.extractall() 可能存在路径遍历风险。请验证成员路径。"
+    pattern: tar.extractall(...)
+
+  - id: deepaudit.python.insecure-zipfile-extractall
+    languages: [python]
+    severity: WARNING
+    message: "Python zipfile.extractall() 可能存在路径遍历风险。请验证成员路径。"
+    pattern: zip.extractall(...)
+
+  # =================== 更多 Java 规则 (新增170) ===================
+  - id: deepaudit.java.insecure-spring-boot-actuator
+    languages: [java]
+    severity: WARNING
+    message: "Spring Boot Actuator 端点可能暴露敏感信息。请保护或禁用不需要的端点。"
+    pattern: @Endpoint
+
+  - id: deepaudit.java.insecure-spring-cloud-config
+    languages: [java]
+    severity: WARNING
+    message: "Spring Cloud Config 可能包含敏感配置。请加密敏感配置。"
+    pattern: @Value("...")
+
+  - id: deepaudit.java.insecure-spring-sqli-jdbctemplate
+    languages: [java]
+    severity: ERROR
+    message: "Spring JdbcTemplate 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: jdbcTemplate.queryForObject($SQL + $INPUT, ...)
+
+  - id: deepaudit.java.insecure-jpa-hql
+    languages: [java]
+    severity: ERROR
+    message: "JPA HQL 查询使用字符串拼接，存在注入风险。请使用命名参数。"
+    pattern: entityManager.createQuery($SQL + $INPUT)
+
+  - id: deepaudit.java.insecure-mybatis-xml-sql
+    languages: [java]
+    severity: ERROR
+    message: "MyBatis XML 使用 ${} 拼接，存在 SQL 注入风险。请使用 #{}。"
+    pattern: "${...}"
+
+  - id: deepaudit.java.insecure-log4j-jndi
+    languages: [java]
+    severity: ERROR
+    message: "Log4j JNDI 查找存在 Log4Shell 风险。请升级 Log4j 或禁用 JNDI。"
+    pattern: "${jndi:..."
+
+  - id: deepaudit.java.insecure-okhttp-http-not-https
+    languages: [java]
+    severity: WARNING
+    message: "OkHttp 使用 HTTP 而非 HTTPS。请使用 HTTPS。"
+    pattern: new OkHttpClient().newCall(new Request.Builder().url("http://..."))
+
+  - id: deepaudit.java.insecure-retrofit-converter
+    languages: [java]
+    severity: INFO
+    message: "Retrofit 转换器配置，请确保安全处理响应。"
+    pattern: addConverterFactory(...)
+
+  - id: deepaudit.java.insecure-jackson-type-resolver
+    languages: [java]
+    severity: WARNING
+    message: "Jackson 启用多态类型处理可能存在反序列化风险。请谨慎使用。"
+    pattern: @JsonTypeInfo(use = Id.CLASS, ...)
+
+  - id: deepaudit.java.insecure-gson-fromjson
+    languages: [java]
+    severity: WARNING
+    message: "Gson fromJson 使用用户输入，可能存在风险。请验证输入。"
+    pattern: new Gson().fromJson($INPUT, ...)
+
+  # =================== 更多 JavaScript 规则 (新增180) ===================
+  - id: deepaudit.javascript.insecure-nestjs-cors
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "NestJS CORS 使用通配符，可能过于宽松。请指定允许的 origin。"
+    pattern: new CorsModule({ origin: "*" })
+
+  - id: deepaudit.javascript.insecure-prisma-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Prisma $queryRaw 使用字符串拼接，存在 SQL 注入风险。请使用参数化。"
+    pattern: prisma.$queryRaw($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-typeorm-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "TypeORM 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: getConnection().query($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-sequelize-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Sequelize 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: sequelize.query($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-knex-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Knex 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: knex.raw($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-objection-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Objection.js 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: Model.raw($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-bookshelf-sql
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Bookshelf.js 使用字符串拼接 SQL，存在注入风险。请使用参数化查询。"
+    pattern: knex.raw($SQL + $INPUT)
+
+  - id: deepaudit.javascript.insecure-mongoose-query
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: "Mongoose 使用 $where 操作符，存在 NoSQL 注入风险。请避免使用。"
+    pattern: Model.$where($INPUT)
+
+  - id: deepaudit.javascript.insecure-aws-sdk-credentials
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "AWS SDK 硬编码凭证。请使用环境变量或 IAM 角色。"
+    pattern: new AWS.Credentials(...)
+
+  - id: deepaudit.javascript.insecure-firebase-config
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Firebase 配置可能暴露 API 密钥。请确保安全配置。"
+    pattern: initializeApp({ apiKey: "...", ... })

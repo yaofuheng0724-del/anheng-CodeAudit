@@ -1,0 +1,29 @@
+# Hand-maintained library fingerprints and the highest-impact CVEs we want
+# to flag on detection. Match strategy: extract printable strings from the
+# binary, look for `string_match` substring; if present, record the version
+# (captured via `version_regex`), and emit one finding per affected version.
+#
+# To update: add a new entry below. Versions in `affected_versions` are exact
+# matches against the captured group; use multiple entries for ranges.
+
+- library: openssl
+  string_match: "OpenSSL 1.0.0"
+  version_regex: 'OpenSSL\s+(\d+\.\d+\.\d+[a-z]?)'
+  cves:
+    - id: CVE-2014-0160
+      title: OpenSSL Heartbleed (CVE-2014-0160)
+      severity: critical
+      affected_versions: ["1.0.0", "1.0.1"]
+      description: OpenSSL 1.0.1 系列存在 Heartbleed 漏洞，可远程读取内存。
+      suggestion: 升级到 OpenSSL 1.0.2 或更高版本。
+
+- library: zlib
+  string_match: "inflate 1.2."
+  version_regex: '1\.2\.\d+'
+  cves:
+    - id: CVE-2018-25032
+      title: zlib memory corruption (CVE-2018-25032)
+      severity: high
+      affected_versions: ["1.2.8", "1.2.9", "1.2.10", "1.2.11"]
+      description: zlib < 1.2.12 在压缩特定输入时可能造成内存破坏。
+      suggestion: 升级到 zlib 1.2.12 或更高版本。

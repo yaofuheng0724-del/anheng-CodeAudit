@@ -1,0 +1,161 @@
+# =============================================
+# DeepAudit V6.0 本地仓库生产部署配置
+# =============================================
+# 用途：
+# - 始终基于服务器当前仓库代码构建镜像
+# - 适合长期维护自定义分支（如 qianduanV1.0）
+# - 避免误用官方 latest 镜像导致代码变更不生效
+#
+# 部署命令：
+#   默认（不构建 sandbox）：
+#   DEPLOY_TAG=$(git rev-parse --short HEAD) SANDBOX_ENABLED=false docker compose -f docker-compose.localrepo.yml up -d --build
+#
+#   如需同时构建本地 sandbox：
+#   DEPLOY_TAG=$(git rev-parse --short HEAD) SANDBOX_ENABLED=true docker compose -f docker-compose.localrepo.yml --profile sandbox up -d --build
+#
+# 推荐方式：
+#   ./scripts/deploy-local-repo.sh
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=deepaudit
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - deepaudit-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - deepaudit-network
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        - http_proxy=
+        - https_proxy=
+        - HTTP_PROXY=
+        - HTTPS_PROXY=
+        - all_proxy=
+        - ALL_PROXY=
+    image: deepaudit-backend:${DEPLOY_TAG:-localrepo}
+    restart: unless-stopped
+    volumes:
+      - backend_uploads:/app/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/deepaudit
+      - REDIS_URL=redis://redis:6379/0
+      - AGENT_ENABLED=true
+      - SANDBOX_ENABLED=${SANDBOX_ENABLED:-false}
+      - SANDBOX_IMAGE=${SANDBOX_IMAGE:-deepaudit-sandbox:${DEPLOY_TAG:-localrepo}}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - LLM_API_KEY=${LLM_API_KEY:-your-api-key-here}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - http_proxy=
+      - https_proxy=
+      - all_proxy=
+      - ALL_PROXY=
+      - NO_PROXY=*
+      - no_proxy=*
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - deepaudit-network
+
+  db-migrate:
+    build:
+      context: ./backend
+      args:
+        - http_proxy=
+        - https_proxy=
+        - HTTP_PROXY=
+        - HTTPS_PROXY=
+        - all_proxy=
+        - ALL_PROXY=
+    image: deepaudit-backend:${DEPLOY_TAG:-localrepo}
+    restart: "no"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/deepaudit
+    command: [".venv/bin/alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - deepaudit-network
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - http_proxy=
+        - https_proxy=
+        - HTTP_PROXY=
+        - HTTPS_PROXY=
+        - all_proxy=
+        - ALL_PROXY=
+    image: deepaudit-frontend:${DEPLOY_TAG:-localrepo}
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - http_proxy=
+      - https_proxy=
+      - all_proxy=
+      - ALL_PROXY=
+      - NO_PROXY=*
+      - no_proxy=*
+      - VITE_API_BASE_URL=/api/v1
+    depends_on:
+      - backend
+    networks:
+      - deepaudit-network
+
+  sandbox:
+    profiles: ["sandbox"]
+    build:
+      context: ./docker/sandbox
+      dockerfile: Dockerfile
+    image: deepaudit-sandbox:${DEPLOY_TAG:-localrepo}
+    restart: "no"
+    command: echo "Sandbox image built successfully"
+
+networks:
+  deepaudit-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  redis_data:

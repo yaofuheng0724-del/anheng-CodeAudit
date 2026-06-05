@@ -1,0 +1,38 @@
+# Symbol names whose mere presence in a binary's import table is worth flagging.
+# Severity is conservative (info/low) because a symbol reference is not proof
+# of a vulnerability — it indicates an area worth manual review.
+- symbol: strcpy
+  severity: medium
+  title: 使用了危险函数 strcpy
+  description: 二进制导入了 strcpy 符号。strcpy 不做长度校验，可能造成栈缓冲区溢出。
+  suggestion: 改用 strncpy / strlcpy / snprintf 并显式限制长度。
+
+- symbol: strcat
+  severity: medium
+  title: 使用了危险函数 strcat
+  description: 二进制导入了 strcat 符号，存在缓冲区溢出风险。
+  suggestion: 改用 strncat / strlcat。
+
+- symbol: sprintf
+  severity: medium
+  title: 使用了危险函数 sprintf
+  description: 二进制导入了 sprintf 符号，存在格式化字符串与缓冲区溢出风险。
+  suggestion: 改用 snprintf。
+
+- symbol: gets
+  severity: high
+  title: 使用了禁用函数 gets
+  description: gets 不限制输入长度，几乎必然导致栈溢出，已被 C11 标准移除。
+  suggestion: 改用 fgets 并指定缓冲区大小。
+
+- symbol: system
+  severity: medium
+  title: 调用了 system()
+  description: system() 直接执行 shell 命令，若参数受用户控制会造成命令注入。
+  suggestion: 改用 execve 直接调用程序，避免 shell 解析。
+
+- symbol: popen
+  severity: medium
+  title: 调用了 popen()
+  description: popen 同样经过 shell，存在命令注入风险。
+  suggestion: 改用 fork+execve。

@@ -1,0 +1,306 @@
+{
+  "SEC-INJ-001": {
+    "python": [
+      "cursor.execute($SQL + $INPUT)",
+      "cursor.execute($SQL % $INPUT)",
+      "cursor.execute($F\"...{$INPUT}...\")",
+      "cursor.execute(\"...\" + $VAR)",
+      "session.execute(text($SQL + $INPUT))",
+      "connection.execute($QUERY + $USER_DATA)"
+    ],
+    "java": [
+      "statement.executeQuery($SQL + $INPUT)",
+      "statement.executeQuery($SQL + $VAR)",
+      "statement.executeUpdate(String.format($SQL, $INPUT))",
+      "Runtime.getRuntime().exec($CMD + $INPUT)",
+      "jdbcTemplate.queryForList($SQL + $INPUT)",
+      "entityManager.createNativeQuery($SQL + $INPUT)"
+    ],
+    "go": [
+      "db.Query($SQL + $INPUT)",
+      "db.Query(fmt.Sprintf($SQL, $INPUT))",
+      "db.QueryContext($CTX, $SQL + $VAR)",
+      "db.Exec($SQL + $INPUT)",
+      "db.Exec(fmt.Sprintf($SQL, $INPUT))",
+      "rows, $ERR := db.Query($QUERY + $USER_DATA)"
+    ],
+    "php": [
+      "mysqli_query($CONN, $SQL . $INPUT)",
+      "$pdo->query($SQL . $INPUT)",
+      "mysqli_query($CONN, \"$SQL $INPUT\")",
+      "$pdo->exec($SQL . $VAR)",
+      "mysql_query($SQL . $INPUT)",
+      "mysqli_real_query($CONN, $SQL . $INPUT)"
+    ],
+    "c": [
+      "sqlite3_exec($DB, $SQL, ...)",
+      "sprintf($BUF, $SQL, $INPUT)",
+      "mysql_query($CONN, $SQL)",
+      "PQexec($CONN, $SQL)",
+      "sqlite3_prepare_v2($DB, $SQL, ...)",
+      "snprintf($BUF, $SIZE, $SQL, $INPUT)"
+    ]
+  },
+  "SEC-INJ-002": {
+    "python": [
+      "collection.find({$KEY: $INPUT})",
+      "collection.find_one({$KEY: $INPUT})",
+      "collection.update({$KEY: $INPUT}, ...)",
+      "collection.find(json.loads($INPUT))",
+      "collection.find(eval($INPUT))",
+      "db[$COLLECTION].find({$KEY: $USER_DATA})"
+    ],
+    "javascript": [
+      "collection.find({ $KEY: $INPUT })",
+      "collection.findOne({ $KEY: $INPUT })",
+      "collection.update({ $KEY: $INPUT }, ...)",
+      "collection.find(JSON.parse($INPUT))",
+      "db.collection($NAME).find({ $KEY: $USER_DATA })",
+      "collection.aggregate([ { $match: { $KEY: $INPUT } } ])"
+    ],
+    "java": [
+      "collection.find(eq($KEY, $INPUT))",
+      "collection.find(Filters.eq($KEY, $INPUT))",
+      "collection.findOne(eq($KEY, $INPUT))",
+      "collection.updateOne(eq($KEY, $INPUT), ...)",
+      "collection.find(new Document($KEY, $INPUT))",
+      "collection.find(Filters.regex($KEY, $INPUT))"
+    ]
+  },
+  "SEC-INJ-003": {
+    "python": [
+      "os.system($CMD + $INPUT)",
+      "os.popen($CMD + $INPUT)",
+      "subprocess.call($CMD + $INPUT, shell=True)",
+      "subprocess.Popen($CMD + $INPUT, shell=True)",
+      "os.system(f\"...{$INPUT}...\")",
+      "eval($INPUT)"
+    ],
+    "java": [
+      "Runtime.getRuntime().exec($CMD + $INPUT)",
+      "Runtime.getRuntime().exec(String.format($CMD, $INPUT))",
+      "ProcessBuilder($CMD + $INPUT)",
+      "ProcessBuilder(Arrays.asList($CMD, $INPUT))",
+      "Runtime.getRuntime().exec($CMD + $VAR)",
+      "new ProcessBuilder($CMD, $INPUT).start()"
+    ],
+    "php": [
+      "system($CMD . $INPUT)",
+      "exec($CMD . $INPUT)",
+      "shell_exec($CMD . $INPUT)",
+      "passthru($CMD . $INPUT)",
+      "popen($CMD . $INPUT, ...)",
+      "proc_open($CMD . $INPUT, ...)"
+    ],
+    "go": [
+      "exec.Command($CMD + $INPUT)",
+      "exec.Command($CMD, $INPUT).Run()",
+      "exec.CommandContext($CTX, $CMD + $INPUT)",
+      "exec.Command(\"sh\", \"-c\", $CMD + $INPUT)",
+      "os.StartProcess($CMD + $INPUT, ...)",
+      "exec.Command($BIN, fmt.Sprintf($ARG, $INPUT))"
+    ],
+    "c": [
+      "system($CMD)",
+      "popen($CMD, $MODE)",
+      "execvp($CMD, $ARGS)",
+      "execl($CMD, $INPUT, ...)",
+      "execlp($CMD, $INPUT, ...)",
+      "system($BUF)"
+    ]
+  },
+  "SEC-INJ-004": {
+    "python": [
+      "conn.search_s($BASE, $SCOPE, $FILTER + $INPUT)",
+      "conn.search($FILTER + $INPUT)",
+      "conn.search_s($BASE, $SCOPE, $FILTER % $INPUT)",
+      "conn.search_s($BASE, $SCOPE, f\"...{$INPUT}...\")",
+      "ldap.initialize($URI).search_s($BASE, $SCOPE, $FILTER + $INPUT)",
+      "conn.search($FILTER.format($INPUT))"
+    ],
+    "java": [
+      "ctx.search($BASE, $FILTER + $INPUT, ...)",
+      "ctx.search($BASE, $FILTER + $VAR, $CONTROLS)",
+      "ctx.search($NAME, String.format($FILTER, $INPUT))",
+      "ctx.search($NAME, $FILTER + $USER_DATA)",
+      "ldapTemplate.search($BASE, $FILTER + $INPUT, ...)",
+      "ctx.search($BASE, $FILTER, $CONTROLS)"
+    ]
+  },
+  "SEC-INJ-005": {
+    "python": [
+      "tree.xpath($EXPR + $INPUT)",
+      "lxml.etree.XPath($EXPR + $INPUT)",
+      "tree.xpath($EXPR % $INPUT)",
+      "tree.xpath(f\"...{$INPUT}...\")",
+      "xpath.evaluate($EXPR + $INPUT)",
+      "doc.xpath($QUERY + $USER_DATA)"
+    ],
+    "java": [
+      "xpath.evaluate($EXPR + $INPUT, ...)",
+      "xpath.compile($EXPR + $INPUT)",
+      "xpath.evaluate(String.format($EXPR, $INPUT), ...)",
+      "xpath.compile($EXPR + $VAR)",
+      "xpath.evaluate($EXPR + $USER_DATA, $NODE)",
+      "xpath.compile($QUERY + $INPUT)"
+    ]
+  },
+  "SEC-INJ-006": {
+    "java": [
+      "SpelExpressionParser.parseExpression($INPUT)",
+      "parser.parseExpression($INPUT).getValue()",
+      "parser.parseExpression($INPUT).setValue(...)",
+      "ExpressionParser.parseExpression($INPUT + $VAR)",
+      "parser.parseExpression($USER_DATA)",
+      "parser.parseExpression($INPUT).getValue($CONTEXT)"
+    ],
+    "python": [
+      "eval($INPUT, ...)",
+      "exec($INPUT)",
+      "eval($EXPR + $VAR)",
+      "exec($EXPR + $INPUT)",
+      "eval(f\"...{$INPUT}...\")",
+      "eval(compile($INPUT, ...))"
+    ],
+    "javascript": [
+      "eval($INPUT)",
+      "new Function($INPUT)",
+      "eval($EXPR + $VAR)",
+      "Function($INPUT)()",
+      "eval($USER_DATA)",
+      "setTimeout($INPUT, ...)"
+    ]
+  },
+  "SEC-INJ-007": {
+    "java": [
+      "response.setHeader($NAME, $INPUT)",
+      "response.addHeader($NAME, $INPUT)",
+      "response.setHeader($NAME, $VAR + $INPUT)",
+      "response.sendRedirect($INPUT)",
+      "response.addHeader(\"Location\", $INPUT)",
+      "response.setHeader(\"Refresh\", $INPUT)"
+    ],
+    "python": [
+      "response.headers[$NAME] = $INPUT",
+      "response.headers.add($NAME, $INPUT)",
+      "HttpResponseRedirect($INPUT)",
+      "response[$NAME] = $INPUT",
+      "redirect($INPUT)",
+      "flask.make_response(..., headers={$NAME: $INPUT})"
+    ]
+  },
+  "SEC-INJ-008": {
+    "c": [
+      "printf($INPUT)",
+      "printf($BUF)",
+      "fprintf($FP, $INPUT)",
+      "sprintf($DEST, $INPUT)",
+      "syslog($PRI, $INPUT)",
+      "snprintf($DEST, $SIZE, $INPUT)"
+    ],
+    "python": [
+      "format($INPUT)",
+      "$STR.format($INPUT)",
+      "logging.basicConfig(format=$INPUT)",
+      "logging.Formatter($INPUT)",
+      "f\"...{$INPUT}...\".format(...)",
+      "string.Formatter().format($INPUT)"
+    ]
+  },
+  "SEC-INJ-009": {
+    "python": [
+      "Template($INPUT).render(...)",
+      "Template($TMPL + $INPUT).render(...)",
+      "jinja2.Template($INPUT).render(...)",
+      "env.from_string($INPUT).render(...)",
+      "Template($USER_DATA).render(...)",
+      "flask.render_template_string($INPUT)"
+    ],
+    "java": [
+      "VelocityEngine.evaluate($CTX, $WRITER, $NAME, $INPUT)",
+      "template.evaluate($CTX, $WRITER, $INPUT)",
+      "freemarkerTemplate.process($INPUT, $WRITER)",
+      "ExpressionParser.parseExpression($INPUT).getValue()",
+      "velocityEngine.evaluate($CTX, $OUT, $LOG, $USER_DATA)",
+      "new Velocity.evaluate($CTX, $WRITER, $NAME, $INPUT)"
+    ],
+    "javascript": [
+      "ejs.render($INPUT)",
+      "pug.render($INPUT)",
+      "handlebars.compile($INPUT)(...)",
+      "Mustache.render($INPUT, ...)",
+      "nunjucks.renderString($INPUT, ...)",
+      "_.template($INPUT)(...)"
+    ]
+  },
+  "SEC-INJ-010": {
+    "python": [
+      "eval($INPUT)",
+      "exec($INPUT)",
+      "eval($EXPR)",
+      "exec($CODE)",
+      "exec(compile($INPUT, ...))",
+      "eval(open($INPUT).read())"
+    ],
+    "javascript": [
+      "eval($INPUT)",
+      "new Function($INPUT)",
+      "Function($INPUT)()",
+      "setTimeout($INPUT, ...)",
+      "setInterval($INPUT, ...)",
+      "vm.runInNewContext($INPUT)"
+    ],
+    "java": [
+      "ScriptEngine.eval($INPUT)",
+      "engine.eval($INPUT)",
+      "engine.eval(new java.io.StringReader($INPUT))",
+      "engine.eval($SCRIPT + $VAR)",
+      "ScriptEngine.eval(String.format($SCRIPT, $INPUT))",
+      "engine.eval($USER_DATA)"
+    ],
+    "php": [
+      "eval($INPUT)",
+      "assert($INPUT)",
+      "preg_replace('/.../e', $INPUT, ...)",
+      "create_function($ARGS, $INPUT)",
+      "assert($EXPR + $INPUT)",
+      "system($INPUT)"
+    ]
+  },
+  "SEC-INJ-011": {
+    "python": [
+      "logging.info($INPUT)",
+      "logging.debug($INPUT)",
+      "logging.warning($INPUT)",
+      "logging.error($INPUT + $VAR)",
+      "logger.info(f\"...{$INPUT}...\")",
+      "logging.log($LEVEL, $USER_DATA)"
+    ],
+    "java": [
+      "logger.info($INPUT)",
+      "logger.debug($INPUT)",
+      "logger.warn($INPUT)",
+      "logger.error($INPUT)",
+      "log.info(String.format($FMT, $INPUT))",
+      "log.info($INPUT + $VAR)"
+    ]
+  },
+  "SEC-INJ-012": {
+    "python": [
+      "cursor.execute(\"INSERT INTO ... VALUES ('\" + $INPUT + \"')\")",
+      "cursor.execute(\"UPDATE ... SET x='\" + $INPUT + \"'\")",
+      "session.execute(text(\"SELECT ... WHERE id='\" + $INPUT + \"'\"))",
+      "cursor.execute(f\"INSERT INTO ... VALUES ('{$INPUT}')\")",
+      "cursor.execute(\"DELETE FROM ... WHERE id='\" + $INPUT + \"'\")",
+      "db.query(\"INSERT INTO ... VALUES ('$INPUT')\")"
+    ],
+    "java": [
+      "statement.executeQuery(\"INSERT INTO ... VALUES ('\" + $INPUT + \"')\")",
+      "statement.executeUpdate(\"UPDATE ... SET x='\" + $INPUT + \"'\")",
+      "jdbcTemplate.update(\"INSERT INTO ... VALUES ('\" + $INPUT + \"')\")",
+      "entityManager.createNativeQuery(\"SELECT ... WHERE id='\" + $INPUT + \"'\")",
+      "statement.execute(\"DELETE FROM ... WHERE id='\" + $INPUT + \"'\")",
+      "jdbcTemplate.query(\"SELECT ... WHERE name='\" + $INPUT + \"'\", ...)"
+    ]
+  }
+}

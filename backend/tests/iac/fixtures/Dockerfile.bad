@@ -1,0 +1,5 @@
+FROM ubuntu:latest
+ADD https://example.com/install.sh /tmp/install.sh
+RUN curl https://get.docker.com | sh
+USER root
+CMD ["/bin/bash"]
