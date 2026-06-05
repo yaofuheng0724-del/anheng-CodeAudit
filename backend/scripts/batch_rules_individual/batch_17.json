@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第17批",
+  "description": "批量生成的第17批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-301",
+      "name": "发布管理配置不当",
+      "description": "检测发布管理配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查发布管理的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置发布管理",
+      "enabled": true,
+      "sort_order": 301
+    },
+    {
+      "rule_code": "BATCH-302",
+      "name": "缺少监控保护",
+      "description": "检测缺少监控保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的监控保护措施。",
+      "fix_suggestion": "添加监控保护措施",
+      "enabled": true,
+      "sort_order": 302
+    },
+    {
+      "rule_code": "BATCH-303",
+      "name": "不安全的告警实现",
+      "description": "检测告警实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查告警的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现告警",
+      "enabled": true,
+      "sort_order": 303
+    },
+    {
+      "rule_code": "BATCH-304",
+      "name": "备份验证不足",
+      "description": "检测备份验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查备份的验证逻辑是否充分。",
+      "fix_suggestion": "增强备份验证逻辑",
+      "enabled": true,
+      "sort_order": 304
+    },
+    {
+      "rule_code": "BATCH-305",
+      "name": "恢复信息泄露",
+      "description": "检测恢复可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过恢复泄露敏感信息。",
+      "fix_suggestion": "防止通过恢复泄露信息",
+      "enabled": true,
+      "sort_order": 305
+    },
+    {
+      "rule_code": "BATCH-306",
+      "name": "灾难恢复代码质量问题",
+      "description": "检测灾难恢复相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查灾难恢复相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进灾难恢复代码质量",
+      "enabled": true,
+      "sort_order": 306
+    },
+    {
+      "rule_code": "BATCH-307",
+      "name": "缺少安全测试错误处理",
+      "description": "检测安全测试错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查安全测试相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善安全测试错误处理",
+      "enabled": true,
+      "sort_order": 307
+    },
+    {
+      "rule_code": "BATCH-308",
+      "name": "渗透测试性能问题",
+      "description": "检测渗透测试相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查渗透测试是否存在性能优化空间。",
+      "fix_suggestion": "优化渗透测试性能",
+      "enabled": true,
+      "sort_order": 308
+    },
+    {
+      "rule_code": "BATCH-309",
+      "name": "缺少代码审计文档",
+      "description": "检测代码审计缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查代码审计是否有充分的文档说明。",
+      "fix_suggestion": "添加代码审计文档",
+      "enabled": true,
+      "sort_order": 309
+    },
+    {
+      "rule_code": "BATCH-310",
+      "name": "静态分析 - 校验",
+      "description": "检测静态分析相关的校验问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在静态分析相关的校验安全问题。",
+      "fix_suggestion": "修复静态分析相关的校验问题",
+      "enabled": true,
+      "sort_order": 310
+    },
+    {
+      "rule_code": "BATCH-311",
+      "name": "动态分析配置不当",
+      "description": "检测动态分析配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查动态分析的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置动态分析",
+      "enabled": true,
+      "sort_order": 311
+    },
+    {
+      "rule_code": "BATCH-312",
+      "name": "缺少模糊测试保护",
+      "description": "检测缺少模糊测试保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的模糊测试保护措施。",
+      "fix_suggestion": "添加模糊测试保护措施",
+      "enabled": true,
+      "sort_order": 312
+    },
+    {
+      "rule_code": "BATCH-313",
+      "name": "不安全的安全评审实现",
+      "description": "检测安全评审实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查安全评审的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现安全评审",
+      "enabled": true,
+      "sort_order": 313
+    },
+    {
+      "rule_code": "BATCH-314",
+      "name": "威胁建模验证不足",
+      "description": "检测威胁建模验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查威胁建模的验证逻辑是否充分。",
+      "fix_suggestion": "增强威胁建模验证逻辑",
+      "enabled": true,
+      "sort_order": 314
+    },
+    {
+      "rule_code": "BATCH-315",
+      "name": "风险评估信息泄露",
+      "description": "检测风险评估可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过风险评估泄露敏感信息。",
+      "fix_suggestion": "防止通过风险评估泄露信息",
+      "enabled": true,
+      "sort_order": 315
+    },
+    {
+      "rule_code": "BATCH-316",
+      "name": "合规性代码质量问题",
+      "description": "检测合规性相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查合规性相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进合规性代码质量",
+      "enabled": true,
+      "sort_order": 316
+    },
+    {
+      "rule_code": "BATCH-317",
+      "name": "缺少隐私保护错误处理",
+      "description": "检测隐私保护错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查隐私保护相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善隐私保护错误处理",
+      "enabled": true,
+      "sort_order": 317
+    },
+    {
+      "rule_code": "BATCH-318",
+      "name": "数据保护性能问题",
+      "description": "检测数据保护相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查数据保护是否存在性能优化空间。",
+      "fix_suggestion": "优化数据保护性能",
+      "enabled": true,
+      "sort_order": 318
+    },
+    {
+      "rule_code": "BATCH-319",
+      "name": "缺少数据脱敏文档",
+      "description": "检测数据脱敏缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查数据脱敏是否有充分的文档说明。",
+      "fix_suggestion": "添加数据脱敏文档",
+      "enabled": true,
+      "sort_order": 319
+    },
+    {
+      "rule_code": "BATCH-320",
+      "name": "数据分类 - 检测",
+      "description": "检测数据分类相关的检测问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在数据分类相关的检测安全问题。",
+      "fix_suggestion": "修复数据分类相关的检测问题",
+      "enabled": true,
+      "sort_order": 320
+    }
+  ]
+}

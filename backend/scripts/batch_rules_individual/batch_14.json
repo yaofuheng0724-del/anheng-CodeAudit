@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第14批",
+  "description": "批量生成的第14批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-241",
+      "name": "负载测试配置不当",
+      "description": "检测负载测试配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查负载测试的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置负载测试",
+      "enabled": true,
+      "sort_order": 241
+    },
+    {
+      "rule_code": "BATCH-242",
+      "name": "缺少代码复用保护",
+      "description": "检测缺少代码复用保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的代码复用保护措施。",
+      "fix_suggestion": "添加代码复用保护措施",
+      "enabled": true,
+      "sort_order": 242
+    },
+    {
+      "rule_code": "BATCH-243",
+      "name": "不安全的可维护性实现",
+      "description": "检测可维护性实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查可维护性的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现可维护性",
+      "enabled": true,
+      "sort_order": 243
+    },
+    {
+      "rule_code": "BATCH-244",
+      "name": "可读性验证不足",
+      "description": "检测可读性验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查可读性的验证逻辑是否充分。",
+      "fix_suggestion": "增强可读性验证逻辑",
+      "enabled": true,
+      "sort_order": 244
+    },
+    {
+      "rule_code": "BATCH-245",
+      "name": "可扩展性信息泄露",
+      "description": "检测可扩展性可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过可扩展性泄露敏感信息。",
+      "fix_suggestion": "防止通过可扩展性泄露信息",
+      "enabled": true,
+      "sort_order": 245
+    },
+    {
+      "rule_code": "BATCH-246",
+      "name": "可测试性代码质量问题",
+      "description": "检测可测试性相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查可测试性相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进可测试性代码质量",
+      "enabled": true,
+      "sort_order": 246
+    },
+    {
+      "rule_code": "BATCH-247",
+      "name": "缺少可部署性错误处理",
+      "description": "检测可部署性错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查可部署性相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善可部署性错误处理",
+      "enabled": true,
+      "sort_order": 247
+    },
+    {
+      "rule_code": "BATCH-248",
+      "name": "可观测性性能问题",
+      "description": "检测可观测性相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查可观测性是否存在性能优化空间。",
+      "fix_suggestion": "优化可观测性性能",
+      "enabled": true,
+      "sort_order": 248
+    },
+    {
+      "rule_code": "BATCH-249",
+      "name": "缺少监控文档",
+      "description": "检测监控缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查监控是否有充分的文档说明。",
+      "fix_suggestion": "添加监控文档",
+      "enabled": true,
+      "sort_order": 249
+    },
+    {
+      "rule_code": "BATCH-250",
+      "name": "告警 - 凭证",
+      "description": "检测告警相关的凭证问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在告警相关的凭证安全问题。",
+      "fix_suggestion": "修复告警相关的凭证问题",
+      "enabled": true,
+      "sort_order": 250
+    },
+    {
+      "rule_code": "BATCH-251",
+      "name": "链路追踪配置不当",
+      "description": "检测链路追踪配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查链路追踪的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置链路追踪",
+      "enabled": true,
+      "sort_order": 251
+    },
+    {
+      "rule_code": "BATCH-252",
+      "name": "缺少日志聚合保护",
+      "description": "检测缺少日志聚合保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的日志聚合保护措施。",
+      "fix_suggestion": "添加日志聚合保护措施",
+      "enabled": true,
+      "sort_order": 252
+    },
+    {
+      "rule_code": "BATCH-253",
+      "name": "不安全的指标收集实现",
+      "description": "检测指标收集实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查指标收集的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现指标收集",
+      "enabled": true,
+      "sort_order": 253
+    },
+    {
+      "rule_code": "BATCH-254",
+      "name": "配置管理验证不足",
+      "description": "检测配置管理验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查配置管理的验证逻辑是否充分。",
+      "fix_suggestion": "增强配置管理验证逻辑",
+      "enabled": true,
+      "sort_order": 254
+    },
+    {
+      "rule_code": "BATCH-255",
+      "name": "环境管理信息泄露",
+      "description": "检测环境管理可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过环境管理泄露敏感信息。",
+      "fix_suggestion": "防止通过环境管理泄露信息",
+      "enabled": true,
+      "sort_order": 255
+    },
+    {
+      "rule_code": "BATCH-256",
+      "name": "部署流程代码质量问题",
+      "description": "检测部署流程相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查部署流程相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进部署流程代码质量",
+      "enabled": true,
+      "sort_order": 256
+    },
+    {
+      "rule_code": "BATCH-257",
+      "name": "缺少回滚策略错误处理",
+      "description": "检测回滚策略错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查回滚策略相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善回滚策略错误处理",
+      "enabled": true,
+      "sort_order": 257
+    },
+    {
+      "rule_code": "BATCH-258",
+      "name": "蓝绿部署性能问题",
+      "description": "检测蓝绿部署相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查蓝绿部署是否存在性能优化空间。",
+      "fix_suggestion": "优化蓝绿部署性能",
+      "enabled": true,
+      "sort_order": 258
+    },
+    {
+      "rule_code": "BATCH-259",
+      "name": "缺少金丝雀发布文档",
+      "description": "检测金丝雀发布缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查金丝雀发布是否有充分的文档说明。",
+      "fix_suggestion": "添加金丝雀发布文档",
+      "enabled": true,
+      "sort_order": 259
+    },
+    {
+      "rule_code": "BATCH-260",
+      "name": "A/B测试 - 标准化",
+      "description": "检测A/B测试相关的标准化问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在A/B测试相关的标准化安全问题。",
+      "fix_suggestion": "修复A/B测试相关的标准化问题",
+      "enabled": true,
+      "sort_order": 260
+    }
+  ]
+}

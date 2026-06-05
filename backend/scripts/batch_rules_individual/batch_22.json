@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第22批",
+  "description": "批量生成的第22批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-401",
+      "name": "灰度发布配置不当",
+      "description": "检测灰度发布配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查灰度发布的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置灰度发布",
+      "enabled": true,
+      "sort_order": 401
+    },
+    {
+      "rule_code": "BATCH-402",
+      "name": "缺少流量控制保护",
+      "description": "检测缺少流量控制保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的流量控制保护措施。",
+      "fix_suggestion": "添加流量控制保护措施",
+      "enabled": true,
+      "sort_order": 402
+    },
+    {
+      "rule_code": "BATCH-403",
+      "name": "不安全的限流实现",
+      "description": "检测限流实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查限流的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现限流",
+      "enabled": true,
+      "sort_order": 403
+    },
+    {
+      "rule_code": "BATCH-404",
+      "name": "熔断验证不足",
+      "description": "检测熔断验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查熔断的验证逻辑是否充分。",
+      "fix_suggestion": "增强熔断验证逻辑",
+      "enabled": true,
+      "sort_order": 404
+    },
+    {
+      "rule_code": "BATCH-405",
+      "name": "降级信息泄露",
+      "description": "检测降级可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过降级泄露敏感信息。",
+      "fix_suggestion": "防止通过降级泄露信息",
+      "enabled": true,
+      "sort_order": 405
+    },
+    {
+      "rule_code": "BATCH-406",
+      "name": "重试代码质量问题",
+      "description": "检测重试相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查重试相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进重试代码质量",
+      "enabled": true,
+      "sort_order": 406
+    },
+    {
+      "rule_code": "BATCH-407",
+      "name": "缺少超时错误处理",
+      "description": "检测超时错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查超时相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善超时错误处理",
+      "enabled": true,
+      "sort_order": 407
+    },
+    {
+      "rule_code": "BATCH-408",
+      "name": "幂等性性能问题",
+      "description": "检测幂等性相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查幂等性是否存在性能优化空间。",
+      "fix_suggestion": "优化幂等性性能",
+      "enabled": true,
+      "sort_order": 408
+    },
+    {
+      "rule_code": "BATCH-409",
+      "name": "缺少一致性文档",
+      "description": "检测一致性缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查一致性是否有充分的文档说明。",
+      "fix_suggestion": "添加一致性文档",
+      "enabled": true,
+      "sort_order": 409
+    },
+    {
+      "rule_code": "BATCH-410",
+      "name": "可用性 - 检测",
+      "description": "检测可用性相关的检测问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在可用性相关的检测安全问题。",
+      "fix_suggestion": "修复可用性相关的检测问题",
+      "enabled": true,
+      "sort_order": 410
+    },
+    {
+      "rule_code": "BATCH-411",
+      "name": "分区容错配置不当",
+      "description": "检测分区容错配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查分区容错的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置分区容错",
+      "enabled": true,
+      "sort_order": 411
+    },
+    {
+      "rule_code": "BATCH-412",
+      "name": "缺少CAP理论保护",
+      "description": "检测缺少CAP理论保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的CAP理论保护措施。",
+      "fix_suggestion": "添加CAP理论保护措施",
+      "enabled": true,
+      "sort_order": 412
+    },
+    {
+      "rule_code": "BATCH-413",
+      "name": "不安全的BASE理论实现",
+      "description": "检测BASE理论实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查BASE理论的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现BASE理论",
+      "enabled": true,
+      "sort_order": 413
+    },
+    {
+      "rule_code": "BATCH-414",
+      "name": "认证验证不足",
+      "description": "检测认证验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查认证的验证逻辑是否充分。",
+      "fix_suggestion": "增强认证验证逻辑",
+      "enabled": true,
+      "sort_order": 414
+    },
+    {
+      "rule_code": "BATCH-415",
+      "name": "授权信息泄露",
+      "description": "检测授权可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过授权泄露敏感信息。",
+      "fix_suggestion": "防止通过授权泄露信息",
+      "enabled": true,
+      "sort_order": 415
+    },
+    {
+      "rule_code": "BATCH-416",
+      "name": "会话管理代码质量问题",
+      "description": "检测会话管理相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查会话管理相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进会话管理代码质量",
+      "enabled": true,
+      "sort_order": 416
+    },
+    {
+      "rule_code": "BATCH-417",
+      "name": "缺少输入验证错误处理",
+      "description": "检测输入验证错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查输入验证相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善输入验证错误处理",
+      "enabled": true,
+      "sort_order": 417
+    },
+    {
+      "rule_code": "BATCH-418",
+      "name": "输出编码性能问题",
+      "description": "检测输出编码相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查输出编码是否存在性能优化空间。",
+      "fix_suggestion": "优化输出编码性能",
+      "enabled": true,
+      "sort_order": 418
+    },
+    {
+      "rule_code": "BATCH-419",
+      "name": "缺少加密文档",
+      "description": "检测加密缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查加密是否有充分的文档说明。",
+      "fix_suggestion": "添加加密文档",
+      "enabled": true,
+      "sort_order": 419
+    },
+    {
+      "rule_code": "BATCH-420",
+      "name": "密钥管理 - 加密",
+      "description": "检测密钥管理相关的加密问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在密钥管理相关的加密安全问题。",
+      "fix_suggestion": "修复密钥管理相关的加密问题",
+      "enabled": true,
+      "sort_order": 420
+    }
+  ]
+}

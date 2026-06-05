@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第12批",
+  "description": "批量生成的第12批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-201",
+      "name": "物理安全配置不当",
+      "description": "检测物理安全配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查物理安全的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置物理安全",
+      "enabled": true,
+      "sort_order": 201
+    },
+    {
+      "rule_code": "BATCH-202",
+      "name": "缺少环境安全保护",
+      "description": "检测缺少环境安全保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的环境安全保护措施。",
+      "fix_suggestion": "添加环境安全保护措施",
+      "enabled": true,
+      "sort_order": 202
+    },
+    {
+      "rule_code": "BATCH-203",
+      "name": "不安全的供应链安全实现",
+      "description": "检测供应链安全实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查供应链安全的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现供应链安全",
+      "enabled": true,
+      "sort_order": 203
+    },
+    {
+      "rule_code": "BATCH-204",
+      "name": "开源安全验证不足",
+      "description": "检测开源安全验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查开源安全的验证逻辑是否充分。",
+      "fix_suggestion": "增强开源安全验证逻辑",
+      "enabled": true,
+      "sort_order": 204
+    },
+    {
+      "rule_code": "BATCH-205",
+      "name": "组件分析信息泄露",
+      "description": "检测组件分析可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过组件分析泄露敏感信息。",
+      "fix_suggestion": "防止通过组件分析泄露信息",
+      "enabled": true,
+      "sort_order": 205
+    },
+    {
+      "rule_code": "BATCH-206",
+      "name": "漏洞扫描代码质量问题",
+      "description": "检测漏洞扫描相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查漏洞扫描相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进漏洞扫描代码质量",
+      "enabled": true,
+      "sort_order": 206
+    },
+    {
+      "rule_code": "BATCH-207",
+      "name": "缺少补丁管理错误处理",
+      "description": "检测补丁管理错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查补丁管理相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善补丁管理错误处理",
+      "enabled": true,
+      "sort_order": 207
+    },
+    {
+      "rule_code": "BATCH-208",
+      "name": "配置核查性能问题",
+      "description": "检测配置核查相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查配置核查是否存在性能优化空间。",
+      "fix_suggestion": "优化配置核查性能",
+      "enabled": true,
+      "sort_order": 208
+    },
+    {
+      "rule_code": "BATCH-209",
+      "name": "缺少安全编码文档",
+      "description": "检测安全编码缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查安全编码是否有充分的文档说明。",
+      "fix_suggestion": "添加安全编码文档",
+      "enabled": true,
+      "sort_order": 209
+    },
+    {
+      "rule_code": "BATCH-210",
+      "name": "安全架构 - 解码",
+      "description": "检测安全架构相关的解码问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在安全架构相关的解码安全问题。",
+      "fix_suggestion": "修复安全架构相关的解码问题",
+      "enabled": true,
+      "sort_order": 210
+    },
+    {
+      "rule_code": "BATCH-211",
+      "name": "安全设计配置不当",
+      "description": "检测安全设计配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查安全设计的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置安全设计",
+      "enabled": true,
+      "sort_order": 211
+    },
+    {
+      "rule_code": "BATCH-212",
+      "name": "缺少DevSecOps保护",
+      "description": "检测缺少DevSecOps保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的DevSecOps保护措施。",
+      "fix_suggestion": "添加DevSecOps保护措施",
+      "enabled": true,
+      "sort_order": 212
+    },
+    {
+      "rule_code": "BATCH-213",
+      "name": "不安全的CI/CD安全实现",
+      "description": "检测CI/CD安全实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查CI/CD安全的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现CI/CD安全",
+      "enabled": true,
+      "sort_order": 213
+    },
+    {
+      "rule_code": "BATCH-214",
+      "name": "Git安全验证不足",
+      "description": "检测Git安全验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查Git安全的验证逻辑是否充分。",
+      "fix_suggestion": "增强Git安全验证逻辑",
+      "enabled": true,
+      "sort_order": 214
+    },
+    {
+      "rule_code": "BATCH-215",
+      "name": "代码库安全信息泄露",
+      "description": "检测代码库安全可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过代码库安全泄露敏感信息。",
+      "fix_suggestion": "防止通过代码库安全泄露信息",
+      "enabled": true,
+      "sort_order": 215
+    },
+    {
+      "rule_code": "BATCH-216",
+      "name": "Artifact安全代码质量问题",
+      "description": "检测Artifact安全相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查Artifact安全相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进Artifact安全代码质量",
+      "enabled": true,
+      "sort_order": 216
+    },
+    {
+      "rule_code": "BATCH-217",
+      "name": "缺少容器安全错误处理",
+      "description": "检测容器安全错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查容器安全相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善容器安全错误处理",
+      "enabled": true,
+      "sort_order": 217
+    },
+    {
+      "rule_code": "BATCH-218",
+      "name": "镜像安全性能问题",
+      "description": "检测镜像安全相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查镜像安全是否存在性能优化空间。",
+      "fix_suggestion": "优化镜像安全性能",
+      "enabled": true,
+      "sort_order": 218
+    },
+    {
+      "rule_code": "BATCH-219",
+      "name": "缺少运行时安全文档",
+      "description": "检测运行时安全缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查运行时安全是否有充分的文档说明。",
+      "fix_suggestion": "添加运行时安全文档",
+      "enabled": true,
+      "sort_order": 219
+    },
+    {
+      "rule_code": "BATCH-220",
+      "name": "RASP - 校验",
+      "description": "检测RASP相关的校验问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在RASP相关的校验安全问题。",
+      "fix_suggestion": "修复RASP相关的校验问题",
+      "enabled": true,
+      "sort_order": 220
+    }
+  ]
+}

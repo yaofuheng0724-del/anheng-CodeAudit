@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第3批",
+  "description": "批量生成的第3批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-021",
+      "name": "缺少安全头 - XSS防护不足",
+      "description": "检测缺少X-Frame-Options等安全头的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少X-Frame-Options、X-XSS-Protection、Content-Security-Policy等安全响应头，这可能导致各种Web攻击。",
+      "fix_suggestion": "添加必要的安全响应头",
+      "enabled": true,
+      "sort_order": 21
+    },
+    {
+      "rule_code": "BATCH-022",
+      "name": "不安全的文件上传 - 任意文件上传风险",
+      "description": "检测不安全的文件上传功能",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查文件上传功能是否存在安全隐患，如未验证文件类型、大小限制不足等。",
+      "fix_suggestion": "验证文件类型、限制大小、存储在非Web目录",
+      "enabled": true,
+      "sort_order": 22
+    },
+    {
+      "rule_code": "BATCH-023",
+      "name": "会话超时设置过长 - 会话劫持风险",
+      "description": "检测会话超时设置过长的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查会话超时设置是否过长，这会增加会话劫持的风险。",
+      "fix_suggestion": "设置合理的会话超时时间",
+      "enabled": true,
+      "sort_order": 23
+    },
+    {
+      "rule_code": "BATCH-024",
+      "name": "不安全的Cookie属性 - 会话安全问题",
+      "description": "检测Cookie缺少HttpOnly/Secure属性的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查Cookie是否设置了HttpOnly和Secure属性，缺少这些属性会增加会话劫持风险。",
+      "fix_suggestion": "为敏感Cookie添加HttpOnly和Secure属性",
+      "enabled": true,
+      "sort_order": 24
+    },
+    {
+      "rule_code": "BATCH-025",
+      "name": "开放重定向漏洞 - 钓鱼风险",
+      "description": "检测可能导致开放重定向的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否存在开放重定向漏洞，攻击者可利用此进行钓鱼攻击。",
+      "fix_suggestion": "验证并限制重定向URL",
+      "enabled": true,
+      "sort_order": 25
+    },
+    {
+      "rule_code": "BATCH-026",
+      "name": "缺少CSRF保护 - 跨站请求伪造",
+      "description": "检测缺少CSRF保护的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否缺少CSRF保护机制，这可能导致跨站请求伪造攻击。",
+      "fix_suggestion": "添加CSRF token保护",
+      "enabled": true,
+      "sort_order": 26
+    },
+    {
+      "rule_code": "BATCH-027",
+      "name": "硬编码的凭证 - 安全风险",
+      "description": "检测代码中硬编码的密码或凭证",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否在代码中硬编码了密码、API密钥等敏感凭证信息。",
+      "fix_suggestion": "将凭证移到环境变量或密钥管理系统",
+      "enabled": true,
+      "sort_order": 27
+    },
+    {
+      "rule_code": "BATCH-028",
+      "name": "不安全的密码存储 - 明文或弱哈希",
+      "description": "检测不安全的密码存储方式",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查密码是否以明文或弱哈希方式存储，这会导致密码泄露风险。",
+      "fix_suggestion": "使用bcrypt/Argon2等强哈希算法",
+      "enabled": true,
+      "sort_order": 28
+    },
+    {
+      "rule_code": "BATCH-029",
+      "name": "缺少密码策略 - 弱密码风险",
+      "description": "检测缺少密码策略的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查是否缺少密码复杂度要求策略，这会导致用户设置弱密码。",
+      "fix_suggestion": "实施密码复杂度要求",
+      "enabled": true,
+      "sort_order": 29
+    },
+    {
+      "rule_code": "BATCH-030",
+      "name": "信息泄露 - 详细错误信息",
+      "description": "检测泄露敏感信息的错误消息",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查是否在错误消息中泄露了堆栈跟踪、数据库结构等敏感信息。",
+      "fix_suggestion": "生产环境中隐藏详细错误信息",
+      "enabled": true,
+      "sort_order": 30
+    },
+    {
+      "rule_code": "BATCH-031",
+      "name": "不安全的依赖 - 已知漏洞",
+      "description": "检测使用已知漏洞版本的依赖",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查项目依赖是否存在已知安全漏洞的版本。",
+      "fix_suggestion": "升级到安全的依赖版本",
+      "enabled": true,
+      "sort_order": 31
+    },
+    {
+      "rule_code": "BATCH-032",
+      "name": "缺少请求大小限制 - DoS风险",
+      "description": "检测缺少请求大小限制的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查是否缺少请求体大小限制，这可能导致DoS攻击。",
+      "fix_suggestion": "设置合理的请求大小限制",
+      "enabled": true,
+      "sort_order": 32
+    },
+    {
+      "rule_code": "BATCH-033",
+      "name": "不安全的XML解析 - XXE风险",
+      "description": "检测不安全的XML解析代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查XML解析是否禁用了外部实体引用，防止XXE攻击。",
+      "fix_suggestion": "禁用XML外部实体引用",
+      "enabled": true,
+      "sort_order": 33
+    },
+    {
+      "rule_code": "BATCH-034",
+      "name": "目录列表暴露 - 信息泄露",
+      "description": "检测目录列表功能启用的代码",
+      "category": "security",
+      "severity": "low",
+      "custom_prompt": "检查是否启用了目录列表功能，这可能泄露敏感文件信息。",
+      "fix_suggestion": "禁用目录列表功能",
+      "enabled": true,
+      "sort_order": 34
+    },
+    {
+      "rule_code": "BATCH-035",
+      "name": "不安全的跳转 - 未验证目标",
+      "description": "检测未验证目标的跳转代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查跳转功能是否验证目标URL，防止跳转攻击。",
+      "fix_suggestion": "使用白名单验证跳转目标",
+      "enabled": true,
+      "sort_order": 35
+    },
+    {
+      "rule_code": "BATCH-036",
+      "name": "缺少审计日志 - 安全事件追踪",
+      "description": "检测关键操作缺少审计日志的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查关键安全操作是否缺少审计日志记录。",
+      "fix_suggestion": "为关键操作添加审计日志",
+      "enabled": true,
+      "sort_order": 36
+    },
+    {
+      "rule_code": "BATCH-037",
+      "name": "不安全的临时文件 - 竞争条件",
+      "description": "检测不安全的临时文件操作",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查临时文件操作是否存在竞争条件风险。",
+      "fix_suggestion": "使用安全的临时文件创建方式",
+      "enabled": true,
+      "sort_order": 37
+    },
+    {
+      "rule_code": "BATCH-038",
+      "name": "硬编码的加密密钥 - 密钥管理",
+      "description": "检测硬编码的加密密钥",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否在代码中硬编码了加密密钥。",
+      "fix_suggestion": "使用安全的密钥管理系统",
+      "enabled": true,
+      "sort_order": 38
+    },
+    {
+      "rule_code": "BATCH-039",
+      "name": "缺少访问控制 - 垂直越权",
+      "description": "检测缺少垂直权限控制的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否缺少基于角色的访问控制，可能导致垂直越权。",
+      "fix_suggestion": "实现基于角色的访问控制",
+      "enabled": true,
+      "sort_order": 39
+    },
+    {
+      "rule_code": "BATCH-040",
+      "name": "不安全的缓存策略 - 敏感数据",
+      "description": "检测敏感数据缓存不当的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查敏感数据是否被不安全地缓存。",
+      "fix_suggestion": "避免缓存敏感数据或加密缓存",
+      "enabled": true,
+      "sort_order": 40
+    }
+  ]
+}

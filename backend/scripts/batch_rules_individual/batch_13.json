@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第13批",
+  "description": "批量生成的第13批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-221",
+      "name": "SAST配置不当",
+      "description": "检测SAST配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查SAST的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置SAST",
+      "enabled": true,
+      "sort_order": 221
+    },
+    {
+      "rule_code": "BATCH-222",
+      "name": "缺少DAST保护",
+      "description": "检测缺少DAST保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的DAST保护措施。",
+      "fix_suggestion": "添加DAST保护措施",
+      "enabled": true,
+      "sort_order": 222
+    },
+    {
+      "rule_code": "BATCH-223",
+      "name": "不安全的IAST实现",
+      "description": "检测IAST实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查IAST的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现IAST",
+      "enabled": true,
+      "sort_order": 223
+    },
+    {
+      "rule_code": "BATCH-224",
+      "name": "SCA验证不足",
+      "description": "检测SCA验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查SCA的验证逻辑是否充分。",
+      "fix_suggestion": "增强SCA验证逻辑",
+      "enabled": true,
+      "sort_order": 224
+    },
+    {
+      "rule_code": "BATCH-225",
+      "name": "代码格式信息泄露",
+      "description": "检测代码格式可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过代码格式泄露敏感信息。",
+      "fix_suggestion": "防止通过代码格式泄露信息",
+      "enabled": true,
+      "sort_order": 225
+    },
+    {
+      "rule_code": "BATCH-226",
+      "name": "命名规范代码质量问题",
+      "description": "检测命名规范相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查命名规范相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进命名规范代码质量",
+      "enabled": true,
+      "sort_order": 226
+    },
+    {
+      "rule_code": "BATCH-227",
+      "name": "缺少注释质量错误处理",
+      "description": "检测注释质量错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查注释质量相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善注释质量错误处理",
+      "enabled": true,
+      "sort_order": 227
+    },
+    {
+      "rule_code": "BATCH-228",
+      "name": "函数设计性能问题",
+      "description": "检测函数设计相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查函数设计是否存在性能优化空间。",
+      "fix_suggestion": "优化函数设计性能",
+      "enabled": true,
+      "sort_order": 228
+    },
+    {
+      "rule_code": "BATCH-229",
+      "name": "缺少类设计文档",
+      "description": "检测类设计缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查类设计是否有充分的文档说明。",
+      "fix_suggestion": "添加类设计文档",
+      "enabled": true,
+      "sort_order": 229
+    },
+    {
+      "rule_code": "BATCH-230",
+      "name": "模块划分 - 检测",
+      "description": "检测模块划分相关的检测问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在模块划分相关的检测安全问题。",
+      "fix_suggestion": "修复模块划分相关的检测问题",
+      "enabled": true,
+      "sort_order": 230
+    },
+    {
+      "rule_code": "BATCH-231",
+      "name": "包结构配置不当",
+      "description": "检测包结构配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查包结构的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置包结构",
+      "enabled": true,
+      "sort_order": 231
+    },
+    {
+      "rule_code": "BATCH-232",
+      "name": "缺少依赖管理保护",
+      "description": "检测缺少依赖管理保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的依赖管理保护措施。",
+      "fix_suggestion": "添加依赖管理保护措施",
+      "enabled": true,
+      "sort_order": 232
+    },
+    {
+      "rule_code": "BATCH-233",
+      "name": "不安全的异常处理实现",
+      "description": "检测异常处理实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查异常处理的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现异常处理",
+      "enabled": true,
+      "sort_order": 233
+    },
+    {
+      "rule_code": "BATCH-234",
+      "name": "日志记录验证不足",
+      "description": "检测日志记录验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查日志记录的验证逻辑是否充分。",
+      "fix_suggestion": "增强日志记录验证逻辑",
+      "enabled": true,
+      "sort_order": 234
+    },
+    {
+      "rule_code": "BATCH-235",
+      "name": "单元测试信息泄露",
+      "description": "检测单元测试可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过单元测试泄露敏感信息。",
+      "fix_suggestion": "防止通过单元测试泄露信息",
+      "enabled": true,
+      "sort_order": 235
+    },
+    {
+      "rule_code": "BATCH-236",
+      "name": "集成测试代码质量问题",
+      "description": "检测集成测试相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查集成测试相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进集成测试代码质量",
+      "enabled": true,
+      "sort_order": 236
+    },
+    {
+      "rule_code": "BATCH-237",
+      "name": "缺少端到端测试错误处理",
+      "description": "检测端到端测试错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查端到端测试相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善端到端测试错误处理",
+      "enabled": true,
+      "sort_order": 237
+    },
+    {
+      "rule_code": "BATCH-238",
+      "name": "测试覆盖性能问题",
+      "description": "检测测试覆盖相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查测试覆盖是否存在性能优化空间。",
+      "fix_suggestion": "优化测试覆盖性能",
+      "enabled": true,
+      "sort_order": 238
+    },
+    {
+      "rule_code": "BATCH-239",
+      "name": "缺少性能测试文档",
+      "description": "检测性能测试缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查性能测试是否有充分的文档说明。",
+      "fix_suggestion": "添加性能测试文档",
+      "enabled": true,
+      "sort_order": 239
+    },
+    {
+      "rule_code": "BATCH-240",
+      "name": "压力测试 - 加密",
+      "description": "检测压力测试相关的加密问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在压力测试相关的加密安全问题。",
+      "fix_suggestion": "修复压力测试相关的加密问题",
+      "enabled": true,
+      "sort_order": 240
+    }
+  ]
+}

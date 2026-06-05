@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第6批",
+  "description": "批量生成的第6批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-081",
+      "name": "不安全的序列化 - 反序列化漏洞",
+      "description": "检测不安全的序列化实现",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查序列化/反序列化是否安全实现。",
+      "fix_suggestion": "避免不安全的反序列化",
+      "enabled": true,
+      "sort_order": 81
+    },
+    {
+      "rule_code": "BATCH-082",
+      "name": "缺少输入限制 - 长度检查",
+      "description": "检测缺少输入长度限制的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查用户输入是否有长度限制。",
+      "fix_suggestion": "设置合理的输入长度限制",
+      "enabled": true,
+      "sort_order": 82
+    },
+    {
+      "rule_code": "BATCH-083",
+      "name": "不安全的随机数 - 密码学随机",
+      "description": "检测非加密安全随机数的使用",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查安全场景下是否使用了安全的随机数生成器。",
+      "fix_suggestion": "使用加密安全的随机数生成器",
+      "enabled": true,
+      "sort_order": 83
+    },
+    {
+      "rule_code": "BATCH-084",
+      "name": "缺少补丁管理 - 系统更新",
+      "description": "检测缺少补丁管理的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查系统是否有补丁管理策略。",
+      "fix_suggestion": "建立补丁管理策略",
+      "enabled": true,
+      "sort_order": 84
+    },
+    {
+      "rule_code": "BATCH-085",
+      "name": "不安全的凭据存储 - 密码管理",
+      "description": "检测凭据存储不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查凭据是否安全存储。",
+      "fix_suggestion": "使用安全的凭据存储方案",
+      "enabled": true,
+      "sort_order": 85
+    },
+    {
+      "rule_code": "BATCH-086",
+      "name": "缺少密钥轮换 - 密钥管理",
+      "description": "检测缺少密钥轮换策略的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查加密密钥是否有轮换机制。",
+      "fix_suggestion": "实施密钥轮换策略",
+      "enabled": true,
+      "sort_order": 86
+    },
+    {
+      "rule_code": "BATCH-087",
+      "name": "不安全的API限流 - 防刷机制",
+      "description": "检测API限流实现不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查API限流是否有效实现。",
+      "fix_suggestion": "安全实现API限流",
+      "enabled": true,
+      "sort_order": 87
+    },
+    {
+      "rule_code": "BATCH-088",
+      "name": "缺少数据脱敏 - 隐私保护",
+      "description": "检测敏感数据未脱敏的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查敏感数据在日志等地方是否脱敏。",
+      "fix_suggestion": "对敏感数据进行脱敏处理",
+      "enabled": true,
+      "sort_order": 88
+    },
+    {
+      "rule_code": "BATCH-089",
+      "name": "不安全的重定向 - 开放重定向",
+      "description": "检测重定向目标未验证的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查重定向功能是否安全。",
+      "fix_suggestion": "验证重定向目标",
+      "enabled": true,
+      "sort_order": 89
+    },
+    {
+      "rule_code": "BATCH-090",
+      "name": "缺少错误处理 - 异常安全",
+      "description": "检测错误处理不当的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查错误处理是否安全。",
+      "fix_suggestion": "安全地处理错误",
+      "enabled": true,
+      "sort_order": 90
+    },
+    {
+      "rule_code": "BATCH-091",
+      "name": "不安全的跨站请求 - CSRF",
+      "description": "检测CSRF防护不足的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查CSRF防护是否充分。",
+      "fix_suggestion": "实施CSRF防护",
+      "enabled": true,
+      "sort_order": 91
+    },
+    {
+      "rule_code": "BATCH-092",
+      "name": "缺少会话过期 - 会话管理",
+      "description": "检测会话过期设置不当的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查会话过期是否合理设置。",
+      "fix_suggestion": "设置合理的会话过期时间",
+      "enabled": true,
+      "sort_order": 92
+    },
+    {
+      "rule_code": "BATCH-093",
+      "name": "不安全的文件包含 - LFI/RFI",
+      "description": "检测文件包含漏洞的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否存在本地或远程文件包含漏洞。",
+      "fix_suggestion": "避免动态文件包含",
+      "enabled": true,
+      "sort_order": 93
+    },
+    {
+      "rule_code": "BATCH-094",
+      "name": "缺少权限继承 - 访问控制",
+      "description": "检测权限继承设计不当的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查权限继承逻辑是否安全。",
+      "fix_suggestion": "安全设计权限继承",
+      "enabled": true,
+      "sort_order": 94
+    },
+    {
+      "rule_code": "BATCH-095",
+      "name": "不安全的类型转换 - 类型安全",
+      "description": "检测类型转换不安全的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查类型转换是否安全处理。",
+      "fix_suggestion": "安全地处理类型转换",
+      "enabled": true,
+      "sort_order": 95
+    },
+    {
+      "rule_code": "BATCH-096",
+      "name": "缺少资源限制 - 资源控制",
+      "description": "检测缺少资源使用限制的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查是否有资源使用限制。",
+      "fix_suggestion": "设置资源使用限制",
+      "enabled": true,
+      "sort_order": 96
+    },
+    {
+      "rule_code": "BATCH-097",
+      "name": "不安全的变量覆盖 - 代码注入",
+      "description": "检测可能导致变量覆盖的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否存在变量覆盖漏洞。",
+      "fix_suggestion": "避免动态变量名",
+      "enabled": true,
+      "sort_order": 97
+    },
+    {
+      "rule_code": "BATCH-098",
+      "name": "缺少验证逻辑 - 业务逻辑",
+      "description": "检测业务逻辑验证不足的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查业务逻辑验证是否充分。",
+      "fix_suggestion": "充分验证业务逻辑",
+      "enabled": true,
+      "sort_order": 98
+    },
+    {
+      "rule_code": "BATCH-099",
+      "name": "不安全的时间检查 - 竞争条件",
+      "description": "检测时间检查不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查时间相关的检查是否存在竞争条件。",
+      "fix_suggestion": "避免TOCTOU竞争条件",
+      "enabled": true,
+      "sort_order": 99
+    },
+    {
+      "rule_code": "BATCH-100",
+      "name": "缺少安全文档 - 文档完整性",
+      "description": "检测缺少安全文档的项目",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查项目是否有安全相关文档。",
+      "fix_suggestion": "编写安全文档",
+      "enabled": true,
+      "sort_order": 100
+    }
+  ]
+}

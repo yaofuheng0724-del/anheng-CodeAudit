@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第21批",
+  "description": "批量生成的第21批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-381",
+      "name": "可维护性配置不当",
+      "description": "检测可维护性配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查可维护性的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置可维护性",
+      "enabled": true,
+      "sort_order": 381
+    },
+    {
+      "rule_code": "BATCH-382",
+      "name": "缺少可读性保护",
+      "description": "检测缺少可读性保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的可读性保护措施。",
+      "fix_suggestion": "添加可读性保护措施",
+      "enabled": true,
+      "sort_order": 382
+    },
+    {
+      "rule_code": "BATCH-383",
+      "name": "不安全的可扩展性实现",
+      "description": "检测可扩展性实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查可扩展性的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现可扩展性",
+      "enabled": true,
+      "sort_order": 383
+    },
+    {
+      "rule_code": "BATCH-384",
+      "name": "可测试性验证不足",
+      "description": "检测可测试性验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查可测试性的验证逻辑是否充分。",
+      "fix_suggestion": "增强可测试性验证逻辑",
+      "enabled": true,
+      "sort_order": 384
+    },
+    {
+      "rule_code": "BATCH-385",
+      "name": "可部署性信息泄露",
+      "description": "检测可部署性可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过可部署性泄露敏感信息。",
+      "fix_suggestion": "防止通过可部署性泄露信息",
+      "enabled": true,
+      "sort_order": 385
+    },
+    {
+      "rule_code": "BATCH-386",
+      "name": "可观测性代码质量问题",
+      "description": "检测可观测性相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查可观测性相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进可观测性代码质量",
+      "enabled": true,
+      "sort_order": 386
+    },
+    {
+      "rule_code": "BATCH-387",
+      "name": "缺少监控错误处理",
+      "description": "检测监控错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查监控相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善监控错误处理",
+      "enabled": true,
+      "sort_order": 387
+    },
+    {
+      "rule_code": "BATCH-388",
+      "name": "告警性能问题",
+      "description": "检测告警相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查告警是否存在性能优化空间。",
+      "fix_suggestion": "优化告警性能",
+      "enabled": true,
+      "sort_order": 388
+    },
+    {
+      "rule_code": "BATCH-389",
+      "name": "缺少链路追踪文档",
+      "description": "检测链路追踪缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查链路追踪是否有充分的文档说明。",
+      "fix_suggestion": "添加链路追踪文档",
+      "enabled": true,
+      "sort_order": 389
+    },
+    {
+      "rule_code": "BATCH-390",
+      "name": "日志聚合 - 解码",
+      "description": "检测日志聚合相关的解码问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在日志聚合相关的解码安全问题。",
+      "fix_suggestion": "修复日志聚合相关的解码问题",
+      "enabled": true,
+      "sort_order": 390
+    },
+    {
+      "rule_code": "BATCH-391",
+      "name": "指标收集配置不当",
+      "description": "检测指标收集配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查指标收集的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置指标收集",
+      "enabled": true,
+      "sort_order": 391
+    },
+    {
+      "rule_code": "BATCH-392",
+      "name": "缺少配置管理保护",
+      "description": "检测缺少配置管理保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的配置管理保护措施。",
+      "fix_suggestion": "添加配置管理保护措施",
+      "enabled": true,
+      "sort_order": 392
+    },
+    {
+      "rule_code": "BATCH-393",
+      "name": "不安全的环境管理实现",
+      "description": "检测环境管理实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查环境管理的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现环境管理",
+      "enabled": true,
+      "sort_order": 393
+    },
+    {
+      "rule_code": "BATCH-394",
+      "name": "部署流程验证不足",
+      "description": "检测部署流程验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查部署流程的验证逻辑是否充分。",
+      "fix_suggestion": "增强部署流程验证逻辑",
+      "enabled": true,
+      "sort_order": 394
+    },
+    {
+      "rule_code": "BATCH-395",
+      "name": "回滚策略信息泄露",
+      "description": "检测回滚策略可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过回滚策略泄露敏感信息。",
+      "fix_suggestion": "防止通过回滚策略泄露信息",
+      "enabled": true,
+      "sort_order": 395
+    },
+    {
+      "rule_code": "BATCH-396",
+      "name": "蓝绿部署代码质量问题",
+      "description": "检测蓝绿部署相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查蓝绿部署相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进蓝绿部署代码质量",
+      "enabled": true,
+      "sort_order": 396
+    },
+    {
+      "rule_code": "BATCH-397",
+      "name": "缺少金丝雀发布错误处理",
+      "description": "检测金丝雀发布错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查金丝雀发布相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善金丝雀发布错误处理",
+      "enabled": true,
+      "sort_order": 397
+    },
+    {
+      "rule_code": "BATCH-398",
+      "name": "A/B测试性能问题",
+      "description": "检测A/B测试相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查A/B测试是否存在性能优化空间。",
+      "fix_suggestion": "优化A/B测试性能",
+      "enabled": true,
+      "sort_order": 398
+    },
+    {
+      "rule_code": "BATCH-399",
+      "name": "缺少特性开关文档",
+      "description": "检测特性开关缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查特性开关是否有充分的文档说明。",
+      "fix_suggestion": "添加特性开关文档",
+      "enabled": true,
+      "sort_order": 399
+    },
+    {
+      "rule_code": "BATCH-400",
+      "name": "配置热更新 - 校验",
+      "description": "检测配置热更新相关的校验问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在配置热更新相关的校验安全问题。",
+      "fix_suggestion": "修复配置热更新相关的校验问题",
+      "enabled": true,
+      "sort_order": 400
+    }
+  ]
+}
