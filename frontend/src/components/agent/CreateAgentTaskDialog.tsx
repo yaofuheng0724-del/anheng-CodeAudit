@@ -46,6 +46,22 @@ interface CreateAgentTaskDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+export function canStartCreateAgentTask({
+  selectedProject,
+  taskName,
+  branch,
+}: {
+  selectedProject: Project | undefined;
+  taskName: string;
+  branch: string;
+}) {
+  if (!selectedProject) return false;
+  if (!taskName.trim()) return false;
+  if (selectedProject.scan_mode === "compiled") return false;
+  if (isRepositoryProject(selectedProject)) return !!branch.trim();
+  return true;
+}
+
 export default function CreateAgentTaskDialog({
   open,
   onOpenChange,
@@ -159,16 +175,10 @@ export default function CreateAgentTaskDialog({
   }, [selectedProject?.id]);
 
   // 是否可以开始
-  const canStart = useMemo(() => {
-    if (!selectedProject) return false;
-    if (!taskName.trim()) return false;
-    // 编译后产物项目不允许走深度审计
-    if (selectedProject.scan_mode === "compiled") return false;
-    if (isZipProject(selectedProject)) {
-      return storedZipInfo?.has_file || !!zipFile;
-    }
-    return !!selectedProject.repository_url && !!branch.trim();
-  }, [selectedProject, taskName, storedZipInfo, zipFile, branch]);
+  const canStart = useMemo(
+    () => canStartCreateAgentTask({ selectedProject, taskName, branch }),
+    [selectedProject, taskName, branch]
+  );
 
   // 创建任务
   const handleCreate = async () => {

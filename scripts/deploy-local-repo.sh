@@ -57,14 +57,41 @@ if [ -f "${OVERRIDE_FILE}" ]; then
 fi
 echo "============================================="
 
+cleanup_conflicting_containers() {
+  local project_name="anheng-codeaudit"
+  local services
+  services="$(docker compose --project-name "${project_name}" "${COMPOSE_FILES[@]}" config --services)"
+
+  while IFS= read -r service; do
+    [ -n "${service}" ] || continue
+    local container_name="${project_name}-${service}-1"
+    local container_id
+    container_id="$(docker ps -aq --filter "name=^/${container_name}$" | head -n 1)"
+    [ -n "${container_id}" ] || continue
+
+    local label_project label_service
+    label_project="$(docker inspect "${container_id}" --format '{{ index .Config.Labels "com.docker.compose.project" }}' 2>/dev/null || true)"
+    label_service="$(docker inspect "${container_id}" --format '{{ index .Config.Labels "com.docker.compose.service" }}' 2>/dev/null || true)"
+
+    if [ "${label_project}" = "${project_name}" ] && [ "${label_service}" = "${service}" ]; then
+      continue
+    fi
+
+    echo "发现占用 Compose 容器名但不属于当前部署的旧容器: ${container_name} (${container_id})，正在移除..."
+    docker rm -f "${container_id}" >/dev/null
+  done <<< "${services}"
+}
+
+cleanup_conflicting_containers
+
 if [ -n "$(git status --porcelain)" ]; then
   echo "警告：当前仓库存在未提交变更，部署会基于工作区当前内容构建镜像。"
 fi
 
 if [ "${WITH_SANDBOX}" = "1" ]; then
-  docker compose "${COMPOSE_FILES[@]}" --profile sandbox up -d --build --remove-orphans
+  docker compose --project-name anheng-codeaudit "${COMPOSE_FILES[@]}" --profile sandbox up -d --build --remove-orphans
 else
-  docker compose "${COMPOSE_FILES[@]}" up -d --build --remove-orphans
+  docker compose --project-name anheng-codeaudit "${COMPOSE_FILES[@]}" up -d --build --remove-orphans
 fi
 
 echo

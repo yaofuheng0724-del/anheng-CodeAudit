@@ -261,6 +261,107 @@ def is_task_cancelled(task_id: str) -> bool:
     return task_id in _cancelled_tasks
 
 
+def _get_agent_config_dict(task: AgentTask) -> Dict[str, Any]:
+    """Return agent_config as a dict, tolerating legacy JSON string values."""
+    if not task.agent_config:
+        return {}
+    if isinstance(task.agent_config, dict):
+        return task.agent_config
+    if isinstance(task.agent_config, str):
+        try:
+            parsed = json.loads(task.agent_config)
+            return parsed if isinstance(parsed, dict) else {}
+        except json.JSONDecodeError:
+            logger.warning("Invalid agent_config JSON for task %s", task.id)
+            return {}
+    return {}
+
+
+def _valid_agent_task_statuses() -> Set[str]:
+    """Return all status string constants defined on AgentTaskStatus."""
+    return {
+        value
+        for name, value in vars(AgentTaskStatus).items()
+        if name.isupper() and isinstance(value, str)
+    }
+
+
+def _serialize_agent_task(task: AgentTask) -> AgentTaskResponse:
+    """Serialize an AgentTask ORM object into the API response shape."""
+    progress = 0.0
+    if hasattr(task, "progress_percentage"):
+        progress = task.progress_percentage
+    elif task.status == AgentTaskStatus.COMPLETED:
+        progress = 100.0
+    elif task.status in [AgentTaskStatus.FAILED, AgentTaskStatus.CANCELLED]:
+        progress = 0.0
+
+    total_iterations = task.total_iterations or 0
+    tool_calls_count = task.tool_calls_count or 0
+    tokens_used = task.tokens_used or 0
+
+    orchestrator = _running_orchestrators.get(task.id)
+    if orchestrator and task.status == AgentTaskStatus.RUNNING:
+        stats = orchestrator.get_stats()
+        total_iterations = stats.get("iterations", 0)
+        tool_calls_count = stats.get("tool_calls", 0)
+        tokens_used = stats.get("tokens_used", 0)
+
+        if hasattr(orchestrator, "sub_agents"):
+            for agent in orchestrator.sub_agents.values():
+                if hasattr(agent, "get_stats"):
+                    sub_stats = agent.get_stats()
+                    total_iterations += sub_stats.get("iterations", 0)
+                    tool_calls_count += sub_stats.get("tool_calls", 0)
+                    tokens_used += sub_stats.get("tokens_used", 0)
+
+    agent_config = _get_agent_config_dict(task)
+
+    response_data = {
+        "id": task.id,
+        "project_id": task.project_id,
+        "name": task.name,
+        "description": task.description,
+        "task_type": task.task_type or "agent_audit",
+        "status": task.status,
+        "current_phase": task.current_phase,
+        "current_step": task.current_step,
+        "total_files": task.total_files or 0,
+        "total_lines": task.total_lines or 0,
+        "indexed_files": task.indexed_files or 0,
+        "analyzed_files": task.analyzed_files or 0,
+        "total_chunks": task.total_chunks or 0,
+        "total_iterations": total_iterations,
+        "tool_calls_count": tool_calls_count,
+        "tokens_used": tokens_used,
+        "findings_count": task.findings_count or 0,
+        "total_findings": task.findings_count or 0,
+        "verified_count": task.verified_count or 0,
+        "verified_findings": task.verified_count or 0,
+        "false_positive_count": task.false_positive_count or 0,
+        "critical_count": task.critical_count or 0,
+        "high_count": task.high_count or 0,
+        "medium_count": task.medium_count or 0,
+        "low_count": task.low_count or 0,
+        "quality_score": float(task.quality_score or 0.0),
+        "security_score": float(task.security_score) if task.security_score is not None else None,
+        "progress_percentage": progress,
+        "created_at": task.created_at,
+        "started_at": task.started_at,
+        "completed_at": task.completed_at,
+        "error_message": task.error_message,
+        "audit_scope": task.audit_scope,
+        "target_vulnerabilities": task.target_vulnerabilities,
+        "verification_level": task.verification_level,
+        "exclude_patterns": task.exclude_patterns,
+        "target_files": task.target_files,
+        "functionWhitelist": agent_config.get("functionWhitelist"),
+        "vulnerabilityWhitelist": agent_config.get("vulnerabilityWhitelist"),
+        "sanitizerFunctions": agent_config.get("sanitizerFunctions"),
+    }
+    return AgentTaskResponse(**response_data)
+
+
 async def _execute_agent_task(task_id: str):
     """
     在后台执行 Agent 任务 - 使用动态 Agent 树架构
@@ -1740,11 +1841,10 @@ async def list_agent_tasks(
         query = query.where(AgentTask.project_id == project_id)
     
     if status:
-        try:
-            status_enum = AgentTaskStatus(status)
-            query = query.where(AgentTask.status == status_enum)
-        except ValueError:
-            pass
+        if status in _valid_agent_task_statuses():
+            query = query.where(AgentTask.status == status)
+        else:
+            logger.warning("Ignoring invalid agent task status filter: %s", status)
     
     query = query.order_by(AgentTask.created_at.desc())
     query = query.offset(skip).limit(limit)
@@ -1753,7 +1853,11 @@ async def list_agent_tasks(
     tasks = result.scalars().all()
     # 校正 stale 的 findings_count
     await _fix_stale_findings_count(db, tasks)
-    return tasks
+    try:
+        return [_serialize_agent_task(task) for task in tasks]
+    except Exception as e:
+        logger.error("Error serializing agent task list: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"序列化任务列表失败: {str(e)}")
 
 
 @router.get("/{task_id}", response_model=AgentTaskResponse)
@@ -1779,82 +1883,7 @@ async def get_agent_task(
 
     # 构建响应，确保所有字段都包含
     try:
-        # 计算进度百分比
-        progress = 0.0
-        if hasattr(task, 'progress_percentage'):
-            progress = task.progress_percentage
-        elif task.status == AgentTaskStatus.COMPLETED:
-            progress = 100.0
-        elif task.status in [AgentTaskStatus.FAILED, AgentTaskStatus.CANCELLED]:
-            progress = 0.0
-        
-        # 🔥 从运行中的 Orchestrator 获取实时统计
-        total_iterations = task.total_iterations or 0
-        tool_calls_count = task.tool_calls_count or 0
-        tokens_used = task.tokens_used or 0
-        
-        orchestrator = _running_orchestrators.get(task_id)
-        if orchestrator and task.status == AgentTaskStatus.RUNNING:
-            # 从 Orchestrator 获取统计
-            stats = orchestrator.get_stats()
-            total_iterations = stats.get("iterations", 0)
-            tool_calls_count = stats.get("tool_calls", 0)
-            tokens_used = stats.get("tokens_used", 0)
-            
-            # 累加子 Agent 的统计
-            if hasattr(orchestrator, 'sub_agents'):
-                for agent in orchestrator.sub_agents.values():
-                    if hasattr(agent, 'get_stats'):
-                        sub_stats = agent.get_stats()
-                        total_iterations += sub_stats.get("iterations", 0)
-                        tool_calls_count += sub_stats.get("tool_calls", 0)
-                        tokens_used += sub_stats.get("tokens_used", 0)
-        
-        # 手动构建响应数据
-        response_data = {
-            "id": task.id,
-            "project_id": task.project_id,
-            "name": task.name,
-            "description": task.description,
-            "task_type": task.task_type or "agent_audit",
-            "status": task.status,
-            "current_phase": task.current_phase,
-            "current_step": task.current_step,
-            "total_files": task.total_files or 0,
-            "total_lines": task.total_lines or 0,
-            "indexed_files": task.indexed_files or 0,
-            "analyzed_files": task.analyzed_files or 0,
-            "total_chunks": task.total_chunks or 0,
-            "total_iterations": total_iterations,
-            "tool_calls_count": tool_calls_count,
-            "tokens_used": tokens_used,
-            "findings_count": task.findings_count or 0,
-            "total_findings": task.findings_count or 0,  # 兼容字段
-            "verified_count": task.verified_count or 0,
-            "verified_findings": task.verified_count or 0,  # 兼容字段
-            "false_positive_count": task.false_positive_count or 0,
-            "critical_count": task.critical_count or 0,
-            "high_count": task.high_count or 0,
-            "medium_count": task.medium_count or 0,
-            "low_count": task.low_count or 0,
-            "quality_score": float(task.quality_score or 0.0),
-            "security_score": float(task.security_score) if task.security_score is not None else None,
-            "progress_percentage": progress,
-            "created_at": task.created_at,
-            "started_at": task.started_at,
-            "completed_at": task.completed_at,
-            "error_message": task.error_message,
-            "audit_scope": task.audit_scope,
-            "target_vulnerabilities": task.target_vulnerabilities,
-            "verification_level": task.verification_level,
-            "exclude_patterns": task.exclude_patterns,
-            "target_files": task.target_files,
-            "functionWhitelist": (json.loads(task.agent_config) if task.agent_config else {}).get("functionWhitelist"),
-            "vulnerabilityWhitelist": (json.loads(task.agent_config) if task.agent_config else {}).get("vulnerabilityWhitelist"),
-            "sanitizerFunctions": (json.loads(task.agent_config) if task.agent_config else {}).get("sanitizerFunctions"),
-        }
-        
-        return AgentTaskResponse(**response_data)
+        return _serialize_agent_task(task)
     except Exception as e:
         logger.error(f"Error serializing task {task_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"序列化任务数据失败: {str(e)}")

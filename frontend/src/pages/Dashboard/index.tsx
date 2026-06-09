@@ -45,7 +45,9 @@ export default function Dashboard() {
       const allAgentTasks = agentTasks as AgentTask[];
 
       const auditIssuesPromises = allAuditTasks.map(task =>
-        api.getAuditIssues(task.id).catch(() => [] as AuditIssue[])
+        api.getAuditIssues(task.id)
+          .then(result => Array.isArray(result) ? result : result.items)
+          .catch(() => [] as AuditIssue[])
       );
       const agentFindingsPromises = allAgentTasks.map(task =>
         getAgentFindings(task.id).catch(() => [] as AgentFinding[])

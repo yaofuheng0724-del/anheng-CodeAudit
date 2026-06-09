@@ -62,6 +62,34 @@ interface CreateTaskDialogProps {
 
 const DEFAULT_EXCLUDES: string[] = [];
 
+export function canStartCreateTask({
+  selectedProject,
+  taskName,
+  auditMode,
+  branch,
+  zipReady,
+}: {
+  selectedProject: Project | undefined;
+  taskName: string;
+  auditMode: "fast" | "agent";
+  branch: string;
+  zipReady: boolean;
+}) {
+  if (!selectedProject) return false;
+  if (!taskName.trim()) return false;
+
+  if (auditMode === "agent") {
+    if (selectedProject.scan_mode === "compiled") return false;
+    if (isRepositoryProject(selectedProject)) return !!branch.trim();
+    return true;
+  }
+
+  if (isZipProject(selectedProject)) {
+    return zipReady;
+  }
+  return !!selectedProject.repository_url && !!branch.trim();
+}
+
 export default function CreateTaskDialog({
   open,
   onOpenChange,
@@ -375,17 +403,16 @@ export default function CreateTaskDialog({
     }
   };
 
-  const canStart = useMemo(() => {
-    if (!selectedProject) return false;
-    if (!taskName.trim()) return false;
-    if (isZipProject(selectedProject)) {
-      return (
-        (zipState.useStoredZip && zipState.storedZipInfo?.has_file) ||
-        !!zipState.zipFile
-      );
-    }
-    return !!selectedProject.repository_url && !!branch.trim();
-  }, [selectedProject, zipState, branch]);
+  const canStart = useMemo(
+    () => canStartCreateTask({
+      selectedProject,
+      taskName,
+      auditMode,
+      branch,
+      zipReady: (zipState.useStoredZip && !!zipState.storedZipInfo?.has_file) || !!zipState.zipFile,
+    }),
+    [selectedProject, taskName, auditMode, branch, zipState]
+  );
 
   return (
     <>
