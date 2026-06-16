@@ -65,6 +65,7 @@ const VULN_TYPE_LABELS: Record<string, string> = {
   sensitive_data_exposure: "敏感数据泄露",
   hardcoded_secret: "硬编码密钥",
   weak_crypto: "弱加密",
+  resource_leak: "资源未释放",
   race_condition: "竞态条件",
   business_logic: "业务逻辑漏洞",
   memory_corruption: "内存破坏",

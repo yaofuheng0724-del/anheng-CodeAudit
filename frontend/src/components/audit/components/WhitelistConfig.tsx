@@ -32,6 +32,7 @@ export const VULNERABILITY_OPTIONS = [
   { value: "sensitive_data_exposure", label: "敏感数据泄露" },
   { value: "hardcoded_secret", label: "硬编码密钥" },
   { value: "weak_crypto", label: "弱加密" },
+  { value: "resource_leak", label: "资源未释放" },
   { value: "race_condition", label: "竞态条件" },
   { value: "business_logic", label: "业务逻辑漏洞" },
   { value: "memory_corruption", label: "内存损坏" },

@@ -14,6 +14,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "Java Statement.execute() 使用了字符串拼接构造 SQL，存在注入风险。请改用 PreparedStatement。"
+    metadata:
+      vulnerability_type: sql_injection
     patterns:
       - pattern-either:
           - pattern: $STMT.execute($SQL + $INPUT)
@@ -24,6 +26,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "Hibernate/JPA createQuery/createNativeQuery 使用了字符串拼接，存在注入风险。请使用命名参数或 Criteria API。"
+    metadata:
+      vulnerability_type: sql_injection
     patterns:
       - pattern-either:
           - pattern: $EM.createQuery($SQL + $INPUT)
@@ -34,6 +38,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "Servlet response.getWriter() 直接输出数据到响应，可能造成 XSS。请使用 OWASP Java Encoder 进行输出编码。"
+    metadata:
+      vulnerability_type: xss
     pattern-either:
       - pattern: response.getWriter().print(...)
       - pattern: response.getWriter().write(...)
@@ -43,12 +49,16 @@ rules:
     languages: [jsp]
     severity: ERROR
     message: "JSP 表达式直接输出 request 参数，存在 XSS 风险。请使用 JSTL <c:out> 或 EL 函数进行编码。"
+    metadata:
+      vulnerability_type: xss
     pattern: <%= request.getParameter(...)
 
   - id: deepaudit.java.ssrf-url-from-input
     languages: [java]
     severity: WARNING
     message: "URL 对象由用户输入构造，可能存在 SSRF 风险。请校验 URL 白名单并禁止请求内网地址。"
+    metadata:
+      vulnerability_type: ssrf
     pattern-either:
       - pattern: new URL($REQ.getParameter(...))
       - pattern: new URL($INPUT)
@@ -57,6 +67,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "RestTemplate 使用动态 URL 发起请求，可能存在 SSRF。请校验 URL 目标白名单。"
+    metadata:
+      vulnerability_type: ssrf
     pattern-either:
       - pattern: $RT.getForObject($URL, ...)
       - pattern: $RT.postForObject($URL, ...)
@@ -66,6 +78,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "Runtime.exec() 接收了拼接的输入，存在命令注入风险。请使用固定参数列表并白名单校验输入。"
+    metadata:
+      vulnerability_type: command_injection
     pattern-either:
       - pattern: Runtime.getRuntime().exec($CMD + $INPUT)
       - pattern: Runtime.getRuntime().exec($REQ.getParameter(...))
@@ -74,6 +88,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "ProcessBuilder 使用了拼接的输入构造命令，存在命令注入风险。"
+    metadata:
+      vulnerability_type: command_injection
     pattern-either:
       - pattern: new ProcessBuilder($CMD + $INPUT)
       - pattern: new ProcessBuilder($REQ.getParameter(...))
@@ -82,6 +98,8 @@ rules:
     languages: [java]
     severity: ERROR
     message: "ScriptEngine.eval() 执行了拼接的输入，存在代码注入风险。"
+    metadata:
+      vulnerability_type: command_injection
     patterns:
       - pattern: $ENGINE.eval($SCRIPT + $INPUT)
 
@@ -89,6 +107,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "File/Path 对象由外部输入构造，可能存在路径遍历。请做路径归一化和白名单校验。"
+    metadata:
+      vulnerability_type: path_traversal
     pattern-either:
       - pattern: new File($REQ.getParameter(...))
       - pattern: new File($BASE + $INPUT)
@@ -100,6 +120,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "代码中硬编码了密码，请迁移到环境变量或密钥管理系统。"
+    metadata:
+      vulnerability_type: hardcoded_secret
     pattern-either:
       - pattern: setPassword("...")
       - pattern: $CONN.setPassword("...")
@@ -108,6 +130,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "使用 MD5 或 SHA-1 进行哈希，算法不安全。请改用 SHA-256 或更强的算法。"
+    metadata:
+      vulnerability_type: weak_crypto
     pattern-either:
       - pattern: MessageDigest.getInstance("MD5")
       - pattern: MessageDigest.getInstance("SHA1")
@@ -117,6 +141,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "使用 DES/RC4/Blowfish 加密，算法不安全。请改用 AES-256-GCM。"
+    metadata:
+      vulnerability_type: weak_crypto
     pattern-either:
       - pattern: Cipher.getInstance("DES...")
       - pattern: Cipher.getInstance("RC4...")
@@ -126,6 +152,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "数据库连接未使用 try-with-resources，可能导致资源泄漏。请确保在 finally 或 try-with-resources 中关闭。"
+    metadata:
+      vulnerability_type: resource_leak
     pattern-either:
       - pattern: $DS.getConnection()
       - pattern: DriverManager.getConnection(...)
@@ -134,6 +162,8 @@ rules:
     languages: [java]
     severity: WARNING
     message: "IO 流未使用 try-with-resources，可能导致资源泄漏。"
+    metadata:
+      vulnerability_type: resource_leak
     pattern-either:
       - pattern: new FileInputStream(...)
       - pattern: new Socket(...)
@@ -439,19 +469,21 @@ rules:
     languages: [java]
     severity: WARNING
     message: "Cookie 未设置 HttpOnly 标志，可能被 XSS 窃取。请添加 cookie.setHttpOnly(true)。"
-    pattern: new Cookie(...)
-    - pattern-not-inside: |
-        $COOKIE = new Cookie(...);
-        $COOKIE.setHttpOnly(true);
+    patterns:
+      - pattern: new Cookie(...)
+      - pattern-not-inside: |
+          $COOKIE = new Cookie(...);
+          $COOKIE.setHttpOnly(true);
 
   - id: deepaudit.java.insecure-cookie-no-secure
     languages: [java]
     severity: WARNING
     message: "Cookie 未设置 Secure 标志，可能在非 HTTPS 传输中泄露。请添加 cookie.setSecure(true)。"
-    pattern: new Cookie(...)
-    - pattern-not-inside: |
-        $COOKIE = new Cookie(...);
-        $COOKIE.setSecure(true);
+    patterns:
+      - pattern: new Cookie(...)
+      - pattern-not-inside: |
+          $COOKIE = new Cookie(...);
+          $COOKIE.setSecure(true);
 
   - id: deepaudit.java.insecure-random
     languages: [java]
@@ -638,7 +670,7 @@ rules:
     languages: [javascript, typescript]
     severity: ERROR
     message: "React dangerouslySetInnerHTML 使用用户输入，存在 XSS 风险。请使用 DOMPurify 净化。"
-    pattern: dangerouslySetInnerHTML={{ __html: $INPUT }}
+    pattern: 'dangerouslySetInnerHTML={{ __html: $INPUT }}'
 
   - id: deepaudit.javascript.insecure-vue-v-html
     languages: [javascript, typescript]
@@ -752,13 +784,13 @@ rules:
     languages: [javascript, typescript]
     severity: INFO
     message: "Express body-parser 配置可能需要调整。请限制请求体大小。"
-    pattern: app.use(bodyParser.json({ limit: ... }))
+    pattern: 'app.use(bodyParser.json({ limit: ... }))'
 
   - id: deepaudit.javascript.insecure-express-cors
     languages: [javascript, typescript]
     severity: WARNING
     message: "Express CORS 配置使用通配符，可能过于宽松。请指定允许的 origin。"
-    pattern: app.use(cors({ origin: "*" }))
+    pattern: 'app.use(cors({ origin: "*" }))'
 
   - id: deepaudit.javascript.insecure-express-helmet-missing
     languages: [javascript, typescript]
@@ -771,8 +803,8 @@ rules:
     severity: WARNING
     message: "Express session 配置可能不安全。请设置 secure 和 httpOnly 标志。"
     pattern-either:
-      - pattern: app.use(session({ secret: "..." }))
-      - pattern: cookie: { secure: false }
+      - pattern: 'app.use(session({ secret: "..." }))'
+      - pattern: 'cookie: { secure: false }'
 
   - id: deepaudit.javascript.insecure-nodejs-crypto
     languages: [javascript, typescript]
@@ -786,19 +818,19 @@ rules:
     languages: [javascript, typescript]
     severity: ERROR
     message: "JWT 使用 none 算法，存在绕过风险。请使用 RS256 或 HS256。"
-    pattern: algorithm: "none"
+    pattern: 'algorithm: "none"'
 
   - id: deepaudit.javascript.insecure-jwt-hardcoded-secret
     languages: [javascript, typescript]
     severity: WARNING
     message: "JWT 使用硬编码密钥。请从环境变量读取。"
-    pattern: secret: "..."
+    pattern: 'secret: "..."'
 
   - id: deepaudit.javascript.insecure-mongodb-operator
     languages: [javascript, typescript]
     severity: ERROR
     message: "MongoDB 查询使用用户输入作为操作符，存在 NoSQL 注入风险。请验证输入。"
-    pattern: collection.find({ $where: $INPUT })
+    pattern: 'collection.find({ $where: $INPUT })'
 
   - id: deepaudit.javascript.insecure-sqlite3-sql
     languages: [javascript, typescript]
@@ -828,7 +860,7 @@ rules:
     languages: [javascript, typescript]
     severity: ERROR
     message: "Electron 启用了 nodeIntegration，存在安全风险。请禁用并使用预加载脚本。"
-    pattern: nodeIntegration: true
+    pattern: 'nodeIntegration: true'
 
   # =================== 扩展 PHP 规则 (新增60) ===================
   - id: deepaudit.php.insecure-eval
@@ -981,7 +1013,7 @@ rules:
     languages: [php]
     severity: WARNING
     message: "PHP 重定向使用用户输入，存在开放重定向风险。请验证 URL 白名单。"
-    pattern: header("Location: " . $INPUT)
+    pattern: 'header("Location: " . $INPUT)'
 
   - id: deepaudit.php.insecure-sqlite3-query
     languages: [php]
@@ -1097,13 +1129,13 @@ rules:
     languages: [go]
     severity: WARNING
     message: "Go TLS 跳过证书验证，存在中间人攻击风险。请移除 InsecureSkipVerify。"
-    pattern: InsecureSkipVerify: true
+    pattern: 'InsecureSkipVerify: true'
 
   - id: deepaudit.go.insecure-tls-min-version
     languages: [go]
     severity: INFO
     message: "Go TLS 最低版本可能过旧。请使用 TLS 1.2 或更高版本。"
-    pattern: MinVersion: tls.VersionTLS10
+    pattern: 'MinVersion: tls.VersionTLS10'
 
   - id: deepaudit.go.insecure-json-unmarshal
     languages: [go]
@@ -1153,7 +1185,7 @@ rules:
     languages: [go]
     severity: ERROR
     message: "mgo (MongoDB) 使用 $where 操作符，存在 NoSQL 注入风险。请避免使用。"
-    pattern: collection.Find(bson.M{"$where": $INPUT})
+    pattern: 'collection.Find(bson.M{"$where": $INPUT})'
 
   - id: deepaudit.go.insecure-file-permission
     languages: [go]
@@ -1420,7 +1452,7 @@ rules:
     severity: ERROR
     message: "Ruby 使用反引号或 system 执行用户输入，存在命令注入风险。请验证输入。"
     pattern-either:
-      - pattern: `$CMD`
+      - pattern: '`$CMD`'
       - pattern: system($CMD)
       - pattern: exec($CMD)
 
@@ -1520,7 +1552,7 @@ rules:
     languages: [swift]
     severity: WARNING
     message: "Swift UserDefaults 存储敏感信息，可能被访问。请使用 Keychain。"
-    pattern: UserDefaults.standard.set($INPUT, forKey: ...)
+    pattern: 'UserDefaults.standard.set($INPUT, forKey: ...)'
 
   - id: deepaudit.swift.insecure-coredata
     languages: [swift]
@@ -1673,13 +1705,13 @@ rules:
     languages: [java]
     severity: WARNING
     message: "Spring Boot Actuator 端点可能暴露敏感信息。请保护或禁用不需要的端点。"
-    pattern: @Endpoint
+    pattern: '@Endpoint'
 
   - id: deepaudit.java.insecure-spring-cloud-config
     languages: [java]
     severity: WARNING
     message: "Spring Cloud Config 可能包含敏感配置。请加密敏感配置。"
-    pattern: @Value("...")
+    pattern: '@Value("...")'
 
   - id: deepaudit.java.insecure-spring-sqli-jdbctemplate
     languages: [java]
@@ -1721,7 +1753,7 @@ rules:
     languages: [java]
     severity: WARNING
     message: "Jackson 启用多态类型处理可能存在反序列化风险。请谨慎使用。"
-    pattern: @JsonTypeInfo(use = Id.CLASS, ...)
+    pattern: '@JsonTypeInfo(use = Id.CLASS, ...)'
 
   - id: deepaudit.java.insecure-gson-fromjson
     languages: [java]
@@ -1734,7 +1766,7 @@ rules:
     languages: [javascript, typescript]
     severity: WARNING
     message: "NestJS CORS 使用通配符，可能过于宽松。请指定允许的 origin。"
-    pattern: new CorsModule({ origin: "*" })
+    pattern: 'new CorsModule({ origin: "*" })'
 
   - id: deepaudit.javascript.insecure-prisma-sql
     languages: [javascript, typescript]
@@ -1788,4 +1820,4 @@ rules:
     languages: [javascript, typescript]
     severity: WARNING
     message: "Firebase 配置可能暴露 API 密钥。请确保安全配置。"
-    pattern: initializeApp({ apiKey: "...", ... })
+    pattern: 'initializeApp({ apiKey: "...", ... })'

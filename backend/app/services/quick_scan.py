@@ -609,8 +609,141 @@ PATTERN_RULES = [
 ]
 
 
+VULNERABILITY_TYPE_LABELS = {
+    "sql_injection",
+    "xss",
+    "ssrf",
+    "command_injection",
+    "path_traversal",
+    "hardcoded_secret",
+    "weak_crypto",
+    "resource_leak",
+}
+
+
+PLACEHOLDER_SECRET_VALUES = {
+    "password",
+    "changeme",
+    "change_me",
+    "example",
+    "dummy",
+    "test",
+    "secret",
+    "admin",
+    "123456",
+    "12345678",
+}
+
+
 def normalize_path(path: str | Path) -> str:
     return str(path).replace("\\", "/")
+
+
+def infer_vulnerability_type(rule_id: str | None, title: str | None = None) -> str:
+    haystack = f"{rule_id or ''} {title or ''}".lower()
+    checks = (
+        ("sql_injection", ("sqli", "sql-injection", "sql injection", "sql注入", "sql 注入")),
+        ("xss", ("xss", "cross-site", "跨站脚本")),
+        ("ssrf", ("ssrf", "server-side request forgery", "服务端请求伪造")),
+        ("command_injection", ("cmdi", "command-injection", "cmd-injection", "command injection", "命令注入")),
+        ("path_traversal", ("path-traversal", "path traversal", "路径遍历", "路径穿越")),
+        ("hardcoded_secret", ("secret", "hardcoded", "password", "credential", "硬编码", "明文密码")),
+        ("weak_crypto", ("weak-crypto", "crypto", "cipher", "md5", "sha1", "sha-1", "des", "rc4", "弱加密")),
+        ("resource_leak", ("resource-leak", "resource leak", "资源", "未释放")),
+    )
+    for vuln_type, needles in checks:
+        if any(needle in haystack for needle in needles):
+            return vuln_type
+    return "security"
+
+
+def _rule_vulnerability_type(rule: dict[str, Any]) -> str:
+    explicit = rule.get("vulnerability_type") or rule.get("issue_type")
+    if explicit in VULNERABILITY_TYPE_LABELS:
+        return explicit
+    return infer_vulnerability_type(rule.get("rule_id"), rule.get("title"))
+
+
+def _looks_like_placeholder_secret(value: str) -> bool:
+    normalized = value.strip().strip("\"'").strip().lower()
+    if not normalized:
+        return True
+    if normalized in PLACEHOLDER_SECRET_VALUES:
+        return True
+    if normalized.startswith("${") and normalized.endswith("}"):
+        return True
+    if normalized.startswith("$") or normalized.startswith("env."):
+        return True
+    if "example" in normalized or "dummy" in normalized or "changeme" in normalized:
+        return True
+    return False
+
+
+def _secret_literal_from_line(line: str) -> str | None:
+    quoted = re.search(r"[:=]\s*[\"']([^\"']+)[\"']", line)
+    if quoted:
+        return quoted.group(1)
+    prop = re.search(r"\b(?:password|passwd|pwd|secret|api[_-]?key|token|access[_-]?key)\b\s*[:=]\s*([^\s#;,]+)", line, re.IGNORECASE)
+    if prop:
+        return prop.group(1)
+    return None
+
+
+def _has_resource_close_nearby(lines: list[str], index: int, line: str) -> bool:
+    stripped = line.strip()
+    if stripped.startswith("try ") or stripped.startswith("try(") or stripped.startswith("try ("):
+        return True
+
+    variable_match = re.search(
+        r"\b(?:InputStream|OutputStream|Reader|Writer|Socket|ServerSocket|Connection|Statement|PreparedStatement|CallableStatement)\s+(\w+)\s*=",
+        line,
+    )
+    variable = variable_match.group(1) if variable_match else None
+    start = index
+    end = min(len(lines), index + 8)
+    window = "\n".join(lines[start:end])
+    if variable and re.search(rf"\b{re.escape(variable)}\.close\s*\(", window):
+        return True
+    if "finally" in window and ".close(" in window:
+        return True
+    return False
+
+
+def _should_suppress_pattern_finding(
+    rule: dict[str, Any],
+    source_file: dict[str, Any],
+    lines: list[str],
+    index: int,
+    line: str,
+) -> bool:
+    vuln_type = _rule_vulnerability_type(rule)
+    path = source_file.get("path", "").lower()
+
+    if vuln_type == "hardcoded_secret":
+        value = _secret_literal_from_line(line)
+        if value is None or _looks_like_placeholder_secret(value):
+            return True
+        if any(part in path for part in ("/test/", "/tests/", "/fixture", "/fixtures/", "/example", "/examples/")):
+            return True
+
+    if vuln_type == "weak_crypto":
+        crypto_context = re.search(
+            r"(MessageDigest|Cipher|Mac|KeyGenerator|SecretKeySpec|hashlib|createHash|createCipher|MD5_|SHA1_|DES_|RC4)",
+            line,
+        )
+        if not crypto_context:
+            return True
+
+    if vuln_type == "resource_leak" and _has_resource_close_nearby(lines, index, line):
+        return True
+
+    return False
+
+
+def _finding_rank(finding: dict[str, Any]) -> tuple[int, int]:
+    tool_rank = {"semgrep": 0, "pattern": 1}.get(finding.get("tool"), 2)
+    severity_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(finding.get("severity"), 4)
+    return (tool_rank, severity_rank)
 
 
 def is_text_file(path: str | Path) -> bool:
@@ -848,9 +981,15 @@ def run_semgrep_scan(
             continue
         line_number = int(item.get("start", {}).get("line", 1))
         extra = item.get("extra", {})
+        metadata = extra.get("metadata") or {}
         severity = (extra.get("severity") or "WARNING").lower().replace("error", "high").replace("warning", "medium").replace("info", "low")
         code_snippet = extra.get("lines") or extract_code_snippet(Path(workspace_dir) / relative_path, line_number)
         rule_id = item.get("check_id", "semgrep")
+        issue_type = (
+            metadata.get("vulnerability_type")
+            or metadata.get("issue_type")
+            or infer_vulnerability_type(rule_id, extra.get("message"))
+        )
 
         # ── 提取数据流路径 ──
         source = None
@@ -908,7 +1047,7 @@ def run_semgrep_scan(
             dataflow_path = steps if steps else None
 
         # 无 Semgrep dataflow trace 时，为安全类 finding 生成简化路径
-        if not dataflow_path and severity in ("high", "critical") and item.get("extra", {}).get("metadata", {}).get("category") in ("security", "injection", "xss", "sqli", "ssrf", "rce"):
+        if not dataflow_path and severity in ("high", "critical") and issue_type != "security":
             source = "不可信外部输入"
             sink = f"{relative_path}:{line_number}"
             dataflow_path = [
@@ -937,7 +1076,7 @@ def run_semgrep_scan(
                 "tool": "semgrep",
                 "rule_id": rule_id,
                 "title": extra.get("message", "Semgrep 检测结果"),
-                "issue_type": "security",
+                "issue_type": issue_type,
                 "severity": severity,
                 "file_path": relative_path,
                 "line_number": line_number,
@@ -960,7 +1099,7 @@ def _compiled_pattern_rules() -> list[dict[str, Any]]:
         if compiled is None:
             compiled = [re.compile(pattern, re.IGNORECASE) for pattern in rule["patterns"]]
             rule["compiled_patterns"] = compiled
-        compiled_rules.append({**rule, "compiled_patterns": compiled})
+        compiled_rules.append({**rule, "compiled_patterns": compiled, "issue_type": _rule_vulnerability_type(rule)})
     return compiled_rules
 
 
@@ -985,6 +1124,8 @@ def _scan_single_file_for_patterns(
                 continue
             for pattern in rule["compiled_patterns"]:
                 if pattern.search(line):
+                    if _should_suppress_pattern_finding(rule, source_file, lines, index, line):
+                        continue
                     key = (rule["rule_id"], source_file["path"], index)
                     if key in seen:
                         continue
@@ -1055,19 +1196,19 @@ def run_pattern_scan(source_files: list[dict[str, Any]]) -> list[dict[str, Any]]
 
 
 def deduplicate_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    deduplicated = []
-    seen = set()
+    best_by_key: dict[tuple[Any, ...], dict[str, Any]] = {}
     for finding in findings:
+        snippet = re.sub(r"\s+", " ", str(finding.get("code_snippet") or "")).strip()[:160]
         key = (
-            finding.get("title"),
+            finding.get("issue_type"),
             finding.get("file_path"),
             finding.get("line_number"),
+            finding.get("sink") or snippet,
         )
-        if key in seen:
-            continue
-        seen.add(key)
-        deduplicated.append(finding)
-    return deduplicated
+        current = best_by_key.get(key)
+        if current is None or _finding_rank(finding) < _finding_rank(current):
+            best_by_key[key] = finding
+    return list(best_by_key.values())
 
 
 def calculate_quality_score(total_files: int, findings_count: int) -> float:
