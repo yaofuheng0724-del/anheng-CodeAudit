@@ -95,10 +95,30 @@ class AgentTaskCreate(BaseModel):
     sanitizerFunctions: Optional[List[str]] = Field(None, description="特有过滤函数")
 
 
+class AgentTaskProjectResponse(BaseModel):
+    """Agent 任务关联项目摘要"""
+    id: str
+    name: str
+    description: Optional[str] = None
+    source_type: Optional[str] = None
+    repository_url: Optional[str] = None
+    repository_type: Optional[str] = None
+    default_branch: Optional[str] = None
+    programming_languages: Optional[str] = None
+    owner_id: str
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 class AgentTaskResponse(BaseModel):
     """Agent 任务响应 - 包含所有前端需要的字段"""
     id: str
     project_id: str
+    project: Optional[AgentTaskProjectResponse] = None
     name: Optional[str]
     description: Optional[str]
     task_type: str = "agent_audit"
@@ -320,6 +340,7 @@ def _serialize_agent_task(task: AgentTask) -> AgentTaskResponse:
     response_data = {
         "id": task.id,
         "project_id": task.project_id,
+        "project": task.__dict__.get("project"),
         "name": task.name,
         "description": task.description,
         "task_type": task.task_type or "agent_audit",
@@ -1835,7 +1856,7 @@ async def list_agent_tasks(
         return []
     
     # 构建查询
-    query = select(AgentTask).where(AgentTask.project_id.in_(user_project_ids))
+    query = select(AgentTask).options(selectinload(AgentTask.project)).where(AgentTask.project_id.in_(user_project_ids))
     
     if project_id:
         query = query.where(AgentTask.project_id == project_id)
@@ -1869,7 +1890,7 @@ async def get_agent_task(
     """
     获取 Agent 任务详情
     """
-    task = await db.get(AgentTask, task_id)
+    task = await db.get(AgentTask, task_id, options=[selectinload(AgentTask.project)])
     if not task:
         raise HTTPException(status_code=404, detail="任务不存在")
     

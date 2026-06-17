@@ -44,12 +44,30 @@ export function getRegularTaskDisplayName(task: AuditTask) {
   return task.project?.name || "快速审计任务";
 }
 
+export function getRegularTaskProjectName(task: AuditTask) {
+  return task.project?.name || "未知项目";
+}
+
 export function regularTaskMatchesSearch(task: AuditTask, searchTerm: string) {
   const q = searchTerm.trim().toLowerCase();
   if (!q) return true;
   return (
     getRegularTaskDisplayName(task).toLowerCase().includes(q) ||
-    task.project?.name.toLowerCase().includes(q) ||
+    getRegularTaskProjectName(task).toLowerCase().includes(q) ||
+    task.task_type.toLowerCase().includes(q)
+  );
+}
+
+export function getAgentTaskProjectName(task: AgentTask) {
+  return task.project?.name || "未知项目";
+}
+
+export function agentTaskMatchesSearch(task: AgentTask, searchTerm: string) {
+  const q = searchTerm.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    (task.name || "").toLowerCase().includes(q) ||
+    getAgentTaskProjectName(task).toLowerCase().includes(q) ||
     task.task_type.toLowerCase().includes(q)
   );
 }
@@ -264,8 +282,7 @@ export default function AuditTasks() {
   });
 
   const filteredAgentTasks = agentTasks.filter(task => {
-    const matchesSearch = (task.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.task_type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = agentTaskMatchesSearch(task, searchTerm);
     const matchesStatus = statusFilter === "all" || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -323,6 +340,7 @@ export default function AuditTasks() {
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
                   <th className="text-left py-2 px-6 font-medium">任务名称</th>
+                  <th className="text-left py-2 px-3 font-medium">目标项目</th>
                   <th className="text-left py-2 px-3 font-medium">扫描进度</th>
                   <th className="text-left py-2 px-3 font-medium">文件数</th>
                   <th className="text-left py-2 px-3 font-medium">问题数</th>
@@ -333,7 +351,7 @@ export default function AuditTasks() {
               <tbody>
                 {filteredAgentTasks.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" ? '未找到匹配项' : '当前无深度审计任务'}
                     </td>
                   </tr>
@@ -342,6 +360,9 @@ export default function AuditTasks() {
                     <tr key={task.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                       <td className="py-2.5 px-6">
                         <span className="font-medium text-foreground">{task.name || '深度审计任务'}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-muted-foreground">
+                        {getAgentTaskProjectName(task)}
                       </td>
                       <td className="py-2.5 px-3 text-muted-foreground">
                         {(task.progress_percentage || 0).toFixed(0)}%
@@ -415,6 +436,7 @@ export default function AuditTasks() {
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
                   <th className="text-left py-2 px-6 font-medium">任务名称</th>
+                  <th className="text-left py-2 px-3 font-medium">目标项目</th>
                   <th className="text-left py-2 px-3 font-medium">扫描进度</th>
                   <th className="text-left py-2 px-3 font-medium">文件数</th>
                   <th className="text-left py-2 px-3 font-medium">问题数</th>
@@ -425,7 +447,7 @@ export default function AuditTasks() {
               <tbody>
                 {filteredTasks.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-8 text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" ? '未找到匹配项' : '当前无审计任务'}
                     </td>
                   </tr>
@@ -434,6 +456,9 @@ export default function AuditTasks() {
                     <tr key={task.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                       <td className="py-2.5 px-6">
                         <span className="font-medium text-foreground">{getRegularTaskDisplayName(task)}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-muted-foreground">
+                        {getRegularTaskProjectName(task)}
                       </td>
                       <td className="py-2.5 px-3 text-muted-foreground">
                         {calculateTaskProgress(task.scanned_files, task.total_files)}%

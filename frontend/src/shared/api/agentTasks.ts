@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from "./serverClient";
+import type { Project } from "@/shared/types";
 
 // ============ Types ============
 
@@ -60,6 +61,7 @@ export interface AgentTask {
 
   // 错误信息
   error_message: string | null;
+  project?: Project;
 }
 
 /** 数据流路径步骤 */
@@ -479,4 +481,3 @@ export async function downloadAgentReport(taskId: string, format: "markdown" | "
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(url);
 }
-
