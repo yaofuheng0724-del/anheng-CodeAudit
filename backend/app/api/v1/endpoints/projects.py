@@ -562,6 +562,7 @@ async def get_project_files(
     return files
 
 class ScanRequest(BaseModel):
+    name: Optional[str] = None
     file_paths: Optional[List[str]] = None
     full_scan: bool = True
     exclude_patterns: Optional[List[str]] = None
@@ -615,6 +616,7 @@ async def scan_project(
     task = AuditTask(
         project_id=project.id,
         created_by=current_user.id,
+        name=scan_request.name.strip() if scan_request and scan_request.name and scan_request.name.strip() else project.name,
         task_type=(
             scan_request.task_type
             if scan_request and scan_request.task_type in {"repository", "iac_scan"}

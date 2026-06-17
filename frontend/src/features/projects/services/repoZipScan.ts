@@ -17,6 +17,7 @@ const SUPPORTED_ARCHIVE_EXTENSIONS = [
 export async function scanZipFile(params: {
   projectId: string;
   zipFile: File;
+  taskName?: string;
   excludePatterns?: string[];
   createdBy?: string;
   filePaths?: string[];
@@ -35,6 +36,7 @@ export async function scanZipFile(params: {
 
   const scanConfig = {
     file_paths: params.filePaths,
+    name: params.taskName?.trim() || undefined,
     full_scan: !params.filePaths || params.filePaths.length === 0,
     exclude_patterns: params.excludePatterns || [],
     rule_set_id: params.ruleSetId,
@@ -62,6 +64,7 @@ export async function scanZipFile(params: {
  */
 export async function scanStoredZipFile(params: {
   projectId: string;
+  taskName?: string;
   excludePatterns?: string[];
   createdBy?: string;
   filePaths?: string[];
@@ -76,6 +79,7 @@ export async function scanStoredZipFile(params: {
 }): Promise<string> {
   const scanRequest = {
     file_paths: params.filePaths,
+    name: params.taskName?.trim() || undefined,
     full_scan: !params.filePaths || params.filePaths.length === 0,
     exclude_patterns: params.excludePatterns || [],
     rule_set_id: params.ruleSetId,

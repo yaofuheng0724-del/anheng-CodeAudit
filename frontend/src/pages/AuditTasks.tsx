@@ -23,7 +23,6 @@ import type { AuditTask } from "@/shared/types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CreateTaskDialog from "@/components/audit/CreateTaskDialog";
-import TerminalProgressDialog from "@/components/audit/TerminalProgressDialog";
 import { calculateTaskProgress } from "@/shared/utils/utils";
 import { getAgentTasks, cancelAgentTask, type AgentTask } from "@/shared/api/agentTasks";
 import CreateAgentTaskDialog from "@/components/agent/CreateAgentTaskDialog";
@@ -34,6 +33,26 @@ const ZOMBIE_TIMEOUT = 180000; // 3 minutes without progress is potentially stuc
 
 // 任务类型标签
 type TaskTab = "regular" | "agent" | "iac";
+
+export function getFastScanRedirectPath() {
+  return "/audit-tasks?tab=regular";
+}
+
+export function getRegularTaskDisplayName(task: AuditTask) {
+  const name = task.name?.trim();
+  if (name) return name;
+  return task.project?.name || "快速审计任务";
+}
+
+export function regularTaskMatchesSearch(task: AuditTask, searchTerm: string) {
+  const q = searchTerm.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    getRegularTaskDisplayName(task).toLowerCase().includes(q) ||
+    task.project?.name.toLowerCase().includes(q) ||
+    task.task_type.toLowerCase().includes(q)
+  );
+}
 
 export default function AuditTasks() {
   const navigate = useNavigate();
@@ -52,10 +71,6 @@ export default function AuditTasks() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [cancellingTaskId, setCancellingTaskId] = useState<string | null>(null);
-  const [showTerminal, setShowTerminal] = useState(false);
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
-  const [currentTaskType, setCurrentTaskType] = useState<"repository" | "zip">("repository");
-
   // Agent任务状态
   const [agentTasks, setAgentTasks] = useState<AgentTask[]>([]);
   const [agentLoading, setAgentLoading] = useState(true);
@@ -218,10 +233,9 @@ export default function AuditTasks() {
     }
   };
 
-  const handleFastScanStarted = (taskId: string, taskType?: "repository" | "zip") => {
-    setCurrentTaskId(taskId);
-    setCurrentTaskType(taskType || "repository");
-    setShowTerminal(true);
+  const handleFastScanStarted = () => {
+    loadTasks(true);
+    navigate(getFastScanRedirectPath());
   };
 
   const getStatusBadge = (status: string) => {
@@ -244,8 +258,7 @@ export default function AuditTasks() {
   const filteredTasks = tasks.filter(task => {
     // 排除 IaC 扫描任务（它们只属于 IaC tab）
     if ((task.task_type as string) === "iac_scan") return false;
-    const matchesSearch = task.project?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.task_type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = regularTaskMatchesSearch(task, searchTerm);
     const matchesStatus = statusFilter === "all" || task.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -420,7 +433,7 @@ export default function AuditTasks() {
                   filteredTasks.map((task) => (
                     <tr key={task.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                       <td className="py-2.5 px-6">
-                        <span className="font-medium text-foreground">{task.project?.name || '未知项目'}</span>
+                        <span className="font-medium text-foreground">{getRegularTaskDisplayName(task)}</span>
                       </td>
                       <td className="py-2.5 px-3 text-muted-foreground">
                         {calculateTaskProgress(task.scanned_files, task.total_files)}%
@@ -540,14 +553,6 @@ export default function AuditTasks() {
           // 静默刷新：避免触发全屏 loading；800ms 让 BackgroundTasks 翻转 task_type
           setTimeout(() => loadTasks(true), 800);
         }}
-      />
-
-      {/* Terminal Progress Dialog for Fast Scan */}
-      <TerminalProgressDialog
-        open={showTerminal}
-        onOpenChange={setShowTerminal}
-        taskId={currentTaskId}
-        taskType={currentTaskType}
       />
 
     </div>

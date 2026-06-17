@@ -13,6 +13,7 @@ class AuditTask(Base):
     created_by = Column(String, ForeignKey("users.id"), nullable=False)
     
     task_type = Column(String, nullable=False)
+    name = Column(String, nullable=True)
     status = Column(String, default="pending", index=True)  # pending, scheduled, running, completed, failed, cancelled
     branch_name = Column(String, nullable=True)
     scheduled_scan_id = Column(String, ForeignKey("scheduled_scans.id"), nullable=True, index=True)

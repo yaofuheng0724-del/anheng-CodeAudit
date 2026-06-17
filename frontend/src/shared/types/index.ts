@@ -71,6 +71,7 @@ export interface ProjectMember {
 export interface AuditTask {
   id: string;
   project_id: string;
+  name?: string;
   task_type: 'repository' | 'instant';
   status: 'pending' | 'scheduled' | 'running' | 'completed' | 'failed' | 'cancelled';
   branch_name?: string;
@@ -184,6 +185,7 @@ export interface CreateProjectForm {
 
 export interface CreateAuditTaskForm {
   project_id: string;
+  name?: string;
   task_type: 'repository' | 'instant';
   branch_name?: string;
   exclude_patterns: string[];

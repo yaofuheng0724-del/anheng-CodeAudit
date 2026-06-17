@@ -340,6 +340,7 @@ export default function CreateTaskDialog({
         if (zipState.useStoredZip && zipState.storedZipInfo?.has_file) {
           taskId = await scanStoredZipFile({
             projectId: selectedProject.id,
+            taskName: taskName.trim(),
             excludePatterns,
             createdBy: "local-user",
             ruleSetId: selectedRuleSetId || undefined,
@@ -353,6 +354,7 @@ export default function CreateTaskDialog({
           taskId = await scanZipFile({
             projectId: selectedProject.id,
             zipFile: zipState.zipFile,
+            taskName: taskName.trim(),
             excludePatterns,
             createdBy: "local-user",
             ruleSetId: selectedRuleSetId || undefined,
@@ -375,6 +377,7 @@ export default function CreateTaskDialog({
           projectId: selectedProject.id,
           repoUrl: selectedProject.repository_url,
           branch,
+          taskName: taskName.trim(),
           exclude: excludePatterns,
           createdBy: "local-user",
           ruleSetId: selectedRuleSetId || undefined,

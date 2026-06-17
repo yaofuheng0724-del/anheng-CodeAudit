@@ -22,6 +22,7 @@ from app.api.v1.endpoints.tasks import (
     read_task_issues,
     update_issue,
     IssueUpdateSchema,
+    AuditTaskSchema,
 )
 
 
@@ -52,6 +53,7 @@ def _make_task(
 ):
     task = MagicMock()
     task.id = task_id
+    task.name = "User Fast Scan"
     task.project_id = project_id
     task.task_type = "repository"
     task.status = status
@@ -123,6 +125,20 @@ def _db_with_scalar_first(db, obj):
     scalars.first.return_value = obj
     result.scalars.return_value = scalars
     return result
+
+
+# ===================================================================
+# schemas
+# ===================================================================
+
+class TestAuditTaskSchema:
+
+    def test_includes_user_provided_task_name(self):
+        task = _make_task()
+
+        result = AuditTaskSchema.model_validate(task)
+
+        assert result.name == "User Fast Scan"
 
 
 # ===================================================================

@@ -36,10 +36,9 @@ import { validateZipFile } from "@/features/projects/services";
 import type { Project, CreateProjectForm } from "@/shared/types";
 import { uploadZipFile, getZipFileInfo, type ZipFileMeta } from "@/shared/utils/zipStorage";
 import { safeJsonParseArray } from "@/shared/utils/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import CreateTaskDialog from "@/components/audit/CreateTaskDialog";
-import TerminalProgressDialog from "@/components/audit/TerminalProgressDialog";
 import { SUPPORTED_LANGUAGES, REPOSITORY_PLATFORMS } from "@/shared/constants";
 
 // Compiled-mode (二进制扫描) form defaults — keep in lockstep with backend.
@@ -47,6 +46,7 @@ const DEFAULT_COMPILED_OPTIONS = { enable_sca: true, max_binary_size_mb: 200 } a
 const MAX_BINARY_MB_CAP = 2048;
 
 export default function Projects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,8 +54,6 @@ export default function Projects() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showCreateTaskDialog, setShowCreateTaskDialog] = useState(false);
   const [selectedProjectForTask, setSelectedProjectForTask] = useState<string>("");
-  const [showTerminal, setShowTerminal] = useState(false);
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -133,9 +131,8 @@ export default function Projects() {
     }
   };
 
-  const handleFastScanStarted = (taskId: string) => {
-    setCurrentTaskId(taskId);
-    setShowTerminal(true);
+  const handleFastScanStarted = () => {
+    navigate("/audit-tasks?tab=regular");
   };
 
   const handleCreateProject = async () => {
@@ -890,14 +887,6 @@ export default function Projects() {
         onTaskCreated={handleTaskCreated}
         onFastScanStarted={handleFastScanStarted}
         preselectedProjectId={selectedProjectForTask}
-      />
-
-      {/* Terminal Progress Dialog for Fast Scan */}
-      <TerminalProgressDialog
-        open={showTerminal}
-        onOpenChange={setShowTerminal}
-        taskId={currentTaskId}
-        taskType="repository"
       />
 
       {/* Edit Dialog */}

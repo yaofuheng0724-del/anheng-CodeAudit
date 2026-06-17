@@ -195,6 +195,7 @@ export const api = {
   async createAuditTask(task: CreateAuditTaskForm & { created_by?: string }): Promise<AuditTask> {
     // Trigger scan on the project
     const scanRequest = {
+      name: task.name,
       file_paths: task.scan_config?.file_paths,
       full_scan: !task.scan_config?.file_paths || task.scan_config.file_paths.length === 0,
       exclude_patterns: task.exclude_patterns || [],

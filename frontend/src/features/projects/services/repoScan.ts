@@ -4,6 +4,7 @@ export async function runRepositoryAudit(params: {
   projectId: string;
   repoUrl: string;
   branch?: string;
+  taskName?: string;
   exclude?: string[];
   createdBy?: string;
   filePaths?: string[];
@@ -23,6 +24,7 @@ export async function runRepositoryAudit(params: {
 
   const task = await api.createAuditTask({
     project_id: params.projectId,
+    name: params.taskName?.trim() || undefined,
     task_type: "repository",
     branch_name: params.branch || "main",
     exclude_patterns: params.exclude || [],
