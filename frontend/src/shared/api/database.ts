@@ -228,10 +228,23 @@ export const api = {
 
   // ==================== AuditIssue 相关方法 ====================
 
-  async getAuditIssues(taskId: string, params?: { skip?: number; limit?: number }): Promise<{ total: number; items: AuditIssue[]; skip: number; limit: number }> {
+  async getAuditIssues(
+    taskId: string,
+    params?: { skip?: number; limit?: number; severity?: string; status?: string; q?: string }
+  ): Promise<{
+    total: number;
+    items: AuditIssue[];
+    skip: number;
+    limit: number;
+    severity_counts?: Record<string, number>;
+    status_counts?: Record<string, number>;
+  }> {
     const queryParams: Record<string, string> = {};
     if (params?.skip !== undefined) queryParams.skip = String(params.skip);
     if (params?.limit !== undefined) queryParams.limit = String(params.limit);
+    if (params?.severity && params.severity !== "all") queryParams.severity = params.severity;
+    if (params?.status && params.status !== "all") queryParams.status = params.status;
+    if (params?.q) queryParams.q = params.q;
     const res = await apiClient.get(`/tasks/${taskId}/issues`, { params: queryParams });
     return res.data;
   },

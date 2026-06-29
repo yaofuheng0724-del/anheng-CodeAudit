@@ -102,11 +102,15 @@ def test_compiled_scan_engine_parses_java_archives(tmp_path):
         )
         zf.writestr("com/example/Secrets.class", b"constant AKIA1234567890ABCDEF inside class")
 
-    findings = CompiledScanEngine().scan(workspace, {"enable_sca": True, "max_binary_size_mb": 200})
+    scan_result = CompiledScanEngine().scan_with_metrics(workspace, {"enable_sca": True, "max_binary_size_mb": 200})
+    findings = scan_result["findings"]
 
     rule_ids = {finding["rule_id"] for finding in findings}
     assert "compiled.java_archive.CVE-2021-44228" in rule_ids
     assert "compiled.java_archive.secret.aws_access_key" in rule_ids
+    assert scan_result["metrics"]["artifact_count"] == 1
+    assert scan_result["metrics"]["scanned_file_count"] == 3
+    assert all(finding["file_path"].startswith("app.jar") for finding in findings)
 
 
 def test_agent_finding_path_resolution_handles_common_agent_formats(tmp_path):

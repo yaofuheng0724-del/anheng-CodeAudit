@@ -825,7 +825,9 @@ async def _run_compiled_scan(
     await db.commit()
 
     engine = CompiledScanEngine()
-    findings = engine.scan(workspace_dir, options)
+    scan_result = engine.scan_with_metrics(workspace_dir, options)
+    findings = scan_result.get("findings", [])
+    metrics = scan_result.get("metrics", {}) or {}
 
     for finding in findings:
         db.add(
@@ -858,14 +860,14 @@ async def _run_compiled_scan(
     await db.flush()
     await db.commit()
 
-    # Count artifacts as "files" for UI progress accounting.
     artifacts = collect_compiled_artifacts(
         workspace_dir,
         exclude_patterns=options["exclude_patterns"],
         max_size_mb=options["max_binary_size_mb"],
     )
-    task.total_files = len(artifacts)
-    task.scanned_files = len(artifacts)
+    scanned_file_count = int(metrics.get("scanned_file_count") or 0) or len(artifacts)
+    task.total_files = scanned_file_count
+    task.scanned_files = scanned_file_count
     task.issues_count = len(findings)
     task.status = "completed"
     task.completed_at = datetime.now(timezone.utc)

@@ -52,3 +52,11 @@ class CompiledAnalyzer(ABC):
     @abstractmethod
     def analyze(self, file_path: Path, options: dict[str, Any]) -> list[Finding]:
         """Analyze `file_path` and return a list of findings."""
+
+    def collect_metrics(self, file_path: Path, options: dict[str, Any]) -> dict[str, int]:
+        """Return optional scan metrics for this artifact.
+
+        Most binary formats count as one file. Container formats such as jar/war
+        can override this to expose the number of internal entries parsed.
+        """
+        return {}

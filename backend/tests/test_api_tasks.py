@@ -337,18 +337,28 @@ class TestReadTaskIssues:
 
         # First execute: fetch task
         task_result = _db_with_scalar_first(db, task)
-        # Second execute: fetch issues
+        severity_result = MagicMock()
+        severity_result.all.return_value = [("high", 1), ("medium", 1)]
+        status_result = MagicMock()
+        status_result.all.return_value = [("not_fixed", 2)]
+        count_result = MagicMock()
+        count_result.scalar.return_value = 2
+
         issue_result = MagicMock()
         issue_scalars = MagicMock()
         issue_scalars.all.return_value = [issue1, issue2]
         issue_result.scalars.return_value = issue_scalars
 
-        db.execute.side_effect = [task_result, issue_result]
+        db.execute.side_effect = [task_result, severity_result, status_result, count_result, issue_result]
 
         user = _make_user()
         result = await read_task_issues(id=TASK_ID, db=db, current_user=user)
 
-        assert len(result) == 2
+        assert result.total == 2
+        assert len(result.items) == 2
+        assert result.severity_counts["high"] == 1
+        assert result.severity_counts["medium"] == 1
+        assert result.status_counts["not_fixed"] == 2
 
     @pytest.mark.asyncio
     async def test_read_issues_task_not_found(self):

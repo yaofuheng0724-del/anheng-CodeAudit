@@ -1,10 +1,10 @@
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, defer
-from sqlalchemy import delete, func, text
-from pydantic import BaseModel
+from sqlalchemy import delete, func, or_, text
+from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 import json
 import uuid
@@ -115,6 +115,8 @@ class PaginatedIssuesResponse(BaseModel):
     items: List[AuditIssueSchema]
     skip: int
     limit: int
+    severity_counts: Dict[str, int] = Field(default_factory=dict)
+    status_counts: Dict[str, int] = Field(default_factory=dict)
 
     class Config:
         from_attributes = True
@@ -546,6 +548,9 @@ async def read_task_issues(
     id: str,
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(20, ge=1, le=200, description="每页记录数"),
+    severity: Optional[str] = Query(None, description="按严重程度筛选"),
+    status: Optional[str] = Query(None, description="按状态筛选"),
+    q: Optional[str] = Query(None, description="按标题/文件路径搜索"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
@@ -564,16 +569,47 @@ async def read_task_issues(
     if task.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="无权查看此任务的问题")
 
+    severity_rows = await db.execute(
+        select(AuditIssue.severity, func.count(AuditIssue.id))
+        .where(AuditIssue.task_id == id)
+        .group_by(AuditIssue.severity)
+    )
+    severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    for sev, count in severity_rows.all():
+        key = (sev or "info").lower()
+        if key not in severity_counts:
+            key = "info"
+        severity_counts[key] = severity_counts.get(key, 0) + int(count or 0)
+
+    status_rows = await db.execute(
+        select(AuditIssue.status, func.count(AuditIssue.id))
+        .where(AuditIssue.task_id == id)
+        .group_by(AuditIssue.status)
+    )
+    status_counts: Dict[str, int] = {}
+    for item_status, count in status_rows.all():
+        key = item_status or "not_fixed"
+        status_counts[key] = status_counts.get(key, 0) + int(count or 0)
+
+    conditions = [AuditIssue.task_id == id]
+    if severity and severity != "all":
+        conditions.append(AuditIssue.severity == severity)
+    if status and status != "all":
+        conditions.append(AuditIssue.status == status)
+    if q and q.strip():
+        term = f"%{q.strip()}%"
+        conditions.append(or_(AuditIssue.title.ilike(term), AuditIssue.file_path.ilike(term)))
+
     # 查询总数
     count_result = await db.execute(
-        select(func.count(AuditIssue.id)).where(AuditIssue.task_id == id)
+        select(func.count(AuditIssue.id)).where(*conditions)
     )
     total = count_result.scalar() or 0
 
     # 分页查询
     result = await db.execute(
         select(AuditIssue)
-        .where(AuditIssue.task_id == id)
+        .where(*conditions)
         .order_by(
             AuditIssue.severity.desc(),
             AuditIssue.created_at.desc()
@@ -592,6 +628,8 @@ async def read_task_issues(
         items=schema_items,
         skip=skip,
         limit=limit,
+        severity_counts=severity_counts,
+        status_counts=status_counts,
     )
 
 

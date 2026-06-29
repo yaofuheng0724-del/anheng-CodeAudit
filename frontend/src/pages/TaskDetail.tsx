@@ -238,6 +238,14 @@ export default function TaskDetail() {
     const [nameFilter, setNameFilter] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [severityCounts, setSeverityCounts] = useState<Record<string, number>>({
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    info: 0,
+  });
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
 
   // Issue detail Sheet
   const [detailOpen, setDetailOpen] = useState(false);
@@ -264,6 +272,47 @@ export default function TaskDetail() {
     setDetailOpen(true);
   };
 
+  function buildIssueQuery(skip: number, limit: number) {
+    return {
+      skip,
+      limit,
+      severity: severityFilter,
+      status: statusFilter,
+      q: nameFilter.trim() || undefined,
+    };
+  }
+
+  function updateIssueCounts(data: {
+    severity_counts?: Record<string, number>;
+    status_counts?: Record<string, number>;
+  }) {
+    setSeverityCounts({
+      critical: data.severity_counts?.critical || 0,
+      high: data.severity_counts?.high || 0,
+      medium: data.severity_counts?.medium || 0,
+      low: data.severity_counts?.low || 0,
+      info: data.severity_counts?.info || 0,
+    });
+    setStatusCounts(data.status_counts || {});
+  }
+
+  function applyIssuesResponse(data: {
+    total: number;
+    items: AuditIssue[];
+    severity_counts?: Record<string, number>;
+    status_counts?: Record<string, number>;
+  }) {
+    setIssues(data.items || []);
+    setTotalIssues(data.total || 0);
+    updateIssueCounts(data);
+  }
+
+  async function reloadIssues(limit: number = PAGE_SIZE) {
+    if (!id) return;
+    const issuesData = await api.getAuditIssues(id, buildIssueQuery(0, limit));
+    applyIssuesResponse(issuesData);
+  }
+
   // Zombie task detection
   const [lastProgressTime, setLastProgressTime] = useState<number>(Date.now());
   const [lastProgress, setLastProgress] = useState<number>(0);
@@ -274,6 +323,17 @@ export default function TaskDetail() {
       loadTaskDetail();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (!id || loading) return;
+    const timer = setTimeout(() => {
+      reloadIssues(PAGE_SIZE).catch((error) => {
+        console.error('Failed to reload filtered issues:', error);
+        toast.error("加载筛选问题失败");
+      });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [id, nameFilter, severityFilter, statusFilter]);
 
   // Silent progress update for running tasks
   useEffect(() => {
@@ -286,7 +346,7 @@ export default function TaskDetail() {
         try {
           const [taskData, issuesData] = await Promise.all([
             api.getAuditTaskById(id),
-            api.getAuditIssues(id, { skip: 0, limit: issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE })
+            api.getAuditIssues(id, buildIssueQuery(0, issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE))
           ]);
 
           if (!taskData) {
@@ -311,8 +371,7 @@ export default function TaskDetail() {
             taskData.issues_count !== task.issues_count
           ) {
             setTask(taskData);
-            setIssues(issuesData.items || []);
-            setTotalIssues(issuesData.total || 0);
+            applyIssuesResponse(issuesData);
 
             if (['completed', 'failed', 'cancelled'].includes(taskData.status)) {
               clearInterval(intervalId);
@@ -362,12 +421,11 @@ export default function TaskDetail() {
       setLoading(true);
       const [taskData, issuesData] = await Promise.all([
         api.getAuditTaskById(id),
-        api.getAuditIssues(id, { skip: 0, limit: PAGE_SIZE })
+        api.getAuditIssues(id, buildIssueQuery(0, PAGE_SIZE))
       ]);
 
       setTask(taskData);
-      setIssues(issuesData.items || []);
-      setTotalIssues(issuesData.total || 0);
+      applyIssuesResponse(issuesData);
     } catch (error) {
       console.error('Failed to load task detail:', error);
       toast.error("加载任务详情失败");
@@ -381,32 +439,24 @@ export default function TaskDetail() {
     if (!id || loadingMore) return;
     try {
       setLoadingMore(true);
-      const issuesData = await api.getAuditIssues(id, { skip: issues.length, limit: PAGE_SIZE });
+      const issuesData = await api.getAuditIssues(id, buildIssueQuery(issues.length, PAGE_SIZE));
       setIssues(prev => [...prev, ...(issuesData.items || [])]);
       setTotalIssues(issuesData.total || 0);
+      updateIssueCounts(issuesData);
     } catch (error) {
       console.error('Failed to load more issues:', error);
       toast.error("加载更多问题失败");
     } finally {
       setLoadingMore(false);
     }
-  }, [id, issues.length, loadingMore]);
-
-  const filteredIssues = issues.filter(i => {
-    if (nameFilter && !i.title.toLowerCase().includes(nameFilter.toLowerCase())) return false;
-    if (severityFilter !== "all" && i.severity !== severityFilter) return false;
-    if (statusFilter !== "all" && (i.status || 'not_fixed') !== statusFilter) return false;
-    return true;
-  });
+  }, [id, issues.length, loadingMore, nameFilter, severityFilter, statusFilter]);
 
   const handleIssueStatusChange = async (issue: AuditIssue, newStatus: string) => {
     if (!id) return;
     try {
       await api.updateAuditIssue(id, issue.id, { status: newStatus } as any);
       toast.success("状态已更新");
-      const issuesData = await api.getAuditIssues(id, { skip: 0, limit: issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE });
-      setIssues(issuesData.items || []);
-      setTotalIssues(issuesData.total || 0);
+      await reloadIssues(issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE);
     } catch (error) {
       console.error("Failed to update issue status:", error);
       toast.error("状态更新失败");
@@ -420,9 +470,7 @@ export default function TaskDetail() {
       toast.success("AI排查已启动，请稍候刷新查看结果");
       // 5秒后自动刷新
       setTimeout(async () => {
-        const issuesData = await api.getAuditIssues(id, { skip: 0, limit: issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE });
-        setIssues(issuesData.items || []);
-        setTotalIssues(issuesData.total || 0);
+        await reloadIssues(issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE);
       }, 5000);
     } catch (error: any) {
       console.error("AI排查启动失败:", error);
@@ -455,9 +503,7 @@ export default function TaskDetail() {
             clearInterval(pollInterval);
             setAiBatchInProgress(false);
             toast.success("批量AI排查完成");
-            const issuesData = await api.getAuditIssues(id, { skip: 0, limit: issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE });
-            setIssues(issuesData.items || []);
-            setTotalIssues(issuesData.total || 0);
+            await reloadIssues(issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE);
           }
         } catch {
           // 轮询失败，继续
@@ -470,10 +516,7 @@ export default function TaskDetail() {
         if (aiBatchInProgress) {
           setAiBatchInProgress(false);
           // 最终刷新
-          api.getAuditIssues(id, { skip: 0, limit: issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE }).then(res => {
-            setIssues(res.items || []);
-            setTotalIssues(res.total || 0);
-          });
+          reloadIssues(issues.length > PAGE_SIZE ? issues.length : PAGE_SIZE);
         }
       }, 60000);
     } catch (error: any) {
@@ -738,11 +781,12 @@ export default function TaskDetail() {
                   <SelectValue placeholder="全部程度" />
                 </SelectTrigger>
                 <SelectContent className="cyber-dialog border-border">
-                  <SelectItem value="all">全部程度</SelectItem>
-                  <SelectItem value="critical">严重 ({issues.filter(i => i.severity === 'critical').length})</SelectItem>
-                  <SelectItem value="high">高 ({issues.filter(i => i.severity === 'high').length})</SelectItem>
-                  <SelectItem value="medium">中 ({issues.filter(i => i.severity === 'medium').length})</SelectItem>
-                  <SelectItem value="low">低 ({issues.filter(i => i.severity === 'low').length})</SelectItem>
+                  <SelectItem value="all">全部程度 ({task?.issues_count ?? Object.values(severityCounts).reduce((sum, count) => sum + count, 0)})</SelectItem>
+                  <SelectItem value="critical">严重 ({severityCounts.critical || 0})</SelectItem>
+                  <SelectItem value="high">高 ({severityCounts.high || 0})</SelectItem>
+                  <SelectItem value="medium">中 ({severityCounts.medium || 0})</SelectItem>
+                  <SelectItem value="low">低 ({severityCounts.low || 0})</SelectItem>
+                  <SelectItem value="info">信息 ({severityCounts.info || 0})</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -750,13 +794,9 @@ export default function TaskDetail() {
                   <SelectValue placeholder="全部状态" />
                 </SelectTrigger>
                 <SelectContent className="cyber-dialog border-border">
-                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value="all">全部状态 ({Object.values(statusCounts).reduce((sum, count) => sum + count, 0)})</SelectItem>
                   {Object.entries(
-                    issues.reduce((acc: Record<string, number>, i) => {
-                      const key = i.status || 'not_fixed';
-                      acc[key] = (acc[key] || 0) + 1;
-                      return acc;
-                    }, {})
+                    statusCounts
                   ).map(([key, count]) => (
                     <SelectItem key={key} value={key}>
                       {ISSUE_STATUS_LABELS[key] || key} ({count})
@@ -780,9 +820,9 @@ export default function TaskDetail() {
             </div>
 
             <IssuesTable
-              issues={filteredIssues}
+              issues={issues}
               total={totalIssues}
-              hasMore={filteredIssues.length < totalIssues}
+              hasMore={issues.length < totalIssues}
               onLoadMore={loadMoreIssues}
               loadingMore={loadingMore}
               onStatusChange={handleIssueStatusChange}

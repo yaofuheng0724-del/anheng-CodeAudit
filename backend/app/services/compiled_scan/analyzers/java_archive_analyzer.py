@@ -79,7 +79,7 @@ class JavaArchiveAnalyzer(CompiledAnalyzer):
         return file_path.suffix.lower() in self.supported_extensions
 
     def analyze(self, file_path: Path, options: dict[str, Any]) -> list[Finding]:
-        rel = str(file_path)
+        rel = (options or {}).get("display_path") or str(file_path)
         findings: list[Finding] = []
 
         try:
@@ -111,6 +111,42 @@ class JavaArchiveAnalyzer(CompiledAnalyzer):
             ]
 
         return findings
+
+    def collect_metrics(self, file_path: Path, options: dict[str, Any]) -> dict[str, int]:
+        try:
+            with zipfile.ZipFile(file_path) as zf:
+                entries = [info for info in zf.infolist() if not info.is_dir()]
+        except (OSError, zipfile.BadZipFile):
+            return {
+                "internal_file_count": 0,
+                "dependency_count": 0,
+                "metadata_count": 0,
+                "class_count": 0,
+                "resource_count": 0,
+            }
+
+        dependency_count = 0
+        metadata_count = 0
+        class_count = 0
+        resource_count = 0
+        for info in entries:
+            name = info.filename.lower()
+            if name.endswith(".class"):
+                class_count += 1
+            elif name.endswith((".jar", ".war", ".ear", ".aar")):
+                dependency_count += 1
+            elif name.endswith(("manifest.mf", "pom.properties", "pom.xml")):
+                metadata_count += 1
+            else:
+                resource_count += 1
+
+        return {
+            "internal_file_count": len(entries),
+            "dependency_count": dependency_count,
+            "metadata_count": metadata_count,
+            "class_count": class_count,
+            "resource_count": resource_count,
+        }
 
     def _scan_dependencies(
         self,

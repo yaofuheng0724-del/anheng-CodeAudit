@@ -28,8 +28,13 @@ class CompiledScanEngine:
 
     def scan(self, workspace_dir: str | Path, options: dict[str, Any]) -> list[dict[str, Any]]:
         """Scan `workspace_dir`. Returns a list of finding dicts ready to persist."""
+        return self.scan_with_metrics(workspace_dir, options)["findings"]
+
+    def scan_with_metrics(self, workspace_dir: str | Path, options: dict[str, Any]) -> dict[str, Any]:
+        """Scan `workspace_dir` and return findings plus accounting metrics."""
         exclude = (options or {}).get("exclude_patterns", []) or []
         max_size = (options or {}).get("max_binary_size_mb", DEFAULT_MAX_SIZE_MB)
+        workspace = Path(workspace_dir)
 
         # 1. Emit info findings for over-sized files BEFORE filtering them out.
         oversize = self._find_oversize_files(workspace_dir, exclude, max_size)
@@ -41,13 +46,35 @@ class CompiledScanEngine:
             exclude_patterns=exclude,
             max_size_mb=max_size,
         )
+        metrics = {
+            "artifact_count": len(artifacts),
+            "internal_file_count": 0,
+            "dependency_count": 0,
+            "metadata_count": 0,
+            "class_count": 0,
+            "resource_count": 0,
+            "scanned_file_count": 0,
+        }
         for artifact in artifacts:
             path = Path(artifact["absolute_path"])
+            artifact_units = 1
             for analyzer in self.analyzers:
                 if not analyzer.applies_to(path):
                     continue
+                analyzer_options = {
+                    **(options or {}),
+                    "display_path": artifact["relative_path"],
+                }
+                analyzer_metrics = analyzer.collect_metrics(path, analyzer_options)
+                if analyzer_metrics:
+                    for key in ("internal_file_count", "dependency_count", "metadata_count", "class_count", "resource_count"):
+                        metrics[key] += int(analyzer_metrics.get(key) or 0)
+                    artifact_units = max(artifact_units, int(analyzer_metrics.get("internal_file_count") or 0) or 1)
                 try:
-                    findings.extend(analyzer.analyze(path, options or {}))
+                    analyzer_findings = analyzer.analyze(path, analyzer_options)
+                    for finding in analyzer_findings:
+                        finding.file_path = self._normalize_finding_path(finding.file_path, workspace)
+                    findings.extend(analyzer_findings)
                 except Exception as exc:   # noqa: BLE001 — engine must not raise
                     findings.append(
                         Finding(
@@ -59,8 +86,10 @@ class CompiledScanEngine:
                             tool="compiled.engine",
                         )
                     )
+            metrics["scanned_file_count"] += artifact_units
 
-        return self._dedupe([f.to_dict() for f in findings])
+        deduped = self._dedupe([f.to_dict() for f in findings])
+        return {"findings": deduped, "metrics": metrics}
 
     # ----- helpers ---------------------------------------------------------
 
@@ -116,3 +145,24 @@ class CompiledScanEngine:
             seen.add(key)
             out.append(f)
         return out
+
+    def _normalize_finding_path(self, file_path: str, workspace: Path) -> str:
+        marker = "!/"
+        outer_path = file_path
+        inner_path = ""
+        if marker in file_path:
+            outer_path, inner_path = file_path.split(marker, 1)
+
+        path = Path(outer_path)
+        if path.is_absolute():
+            try:
+                outer_path = path.relative_to(workspace).as_posix()
+            except ValueError:
+                outer_path = path.name
+        else:
+            outer_path = outer_path.replace("\\", "/")
+
+        if inner_path:
+            normalized_inner = inner_path.replace("\\", "/")
+            return f"{outer_path}{marker}{normalized_inner}"
+        return outer_path
