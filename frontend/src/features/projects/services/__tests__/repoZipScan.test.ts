@@ -29,6 +29,12 @@ describe("validateZipFile", () => {
 		expect(result.error).toBeDefined();
 	});
 
+	it("should pass for compiled artifact extensions in compiled mode", () => {
+		expect(validateZipFile(new File(["content"], "app.jar"), "compiled").valid).toBe(true);
+		expect(validateZipFile(new File(["content"], "app.war"), "compiled").valid).toBe(true);
+		expect(validateZipFile(new File(["content"], "app.jar"), "source").valid).toBe(false);
+	});
+
 	it("should fail for a file exceeding 2GB", () => {
 		const size = 2 * 1024 * 1024 * 1024 + 1;
 		const file = new File(["x"], "big.zip", { type: "application/zip" });

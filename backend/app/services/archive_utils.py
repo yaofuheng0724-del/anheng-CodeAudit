@@ -38,9 +38,28 @@ SUPPORTED_ARCHIVE_EXTENSIONS = {
     ".tar.gz",
 }
 
+COMPILED_ARTIFACT_EXTENSIONS = {
+    ".apk", ".aab", ".dex",
+    ".jar", ".war", ".ear", ".aar", ".class",
+    ".so", ".dll", ".exe", ".elf",
+    ".o", ".obj", ".a", ".lib", ".dylib",
+}
+
 
 def is_supported_archive(filename: str) -> bool:
     return normalize_archive_extension(filename) in SUPPORTED_ARCHIVE_EXTENSIONS
+
+
+def is_supported_compiled_artifact(filename: str) -> bool:
+    return normalize_archive_extension(filename) in COMPILED_ARTIFACT_EXTENSIONS
+
+
+def is_supported_upload_file(filename: str, scan_mode: str = "source") -> bool:
+    if is_supported_archive(filename):
+        return True
+    if scan_mode == "compiled" and is_supported_compiled_artifact(filename):
+        return True
+    return False
 
 
 def _is_real_archive(file_path: Path) -> bool:
@@ -179,4 +198,17 @@ def extract_archive_recursive(
                 continue
             nested_archive.unlink(missing_ok=True)
     else:
-        raise ValueError(f"文件嵌套层级超过限制: {max_depth}")
+        remaining_archives = [
+            file_path
+            for file_path in destination_path.rglob("*")
+            if file_path.is_file()
+            and MACOSX_DIR not in file_path.parts
+            and not file_path.name.startswith(APPLEDOUBLE_PREFIX)
+            and is_supported_archive(file_path.name)
+        ]
+        if remaining_archives:
+            logger.warning(
+                "达到最大嵌套层级 %s，跳过剩余 %s 个嵌套压缩包，继续扫描已解压源码",
+                max_depth,
+                len(remaining_archives),
+            )

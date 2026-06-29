@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+import zipfile
 
 import pytest
 
 from app.api.v1.endpoints.schedules import ScheduledScanCreate, _serialize_schedule
 from app.api.v1.endpoints.schedules import _calculate_next_run_at
 from app.api.v1.endpoints.projects import choose_effective_default_branch
+from app.api.v1.endpoints.scan import materialize_uploaded_scan_input
+from app.api.v1.endpoints.agent_tasks import _extract_finding_file_path, _resolve_existing_project_file
 from app.models.agent_task import AgentTask
 from app.models.audit import AuditTask
 from app.services.scheduled_scans import ScheduledScanRunner
@@ -14,6 +17,7 @@ from app.schemas.user import UserCreate
 from app.services.quick_scan import collect_source_files, run_pattern_scan, should_exclude
 from app.services.git_ssh_service import GitSSHOperations
 from app.services.scanner import fetch_repository_files_with_branch_fallback
+from app.services.archive_utils import extract_archive_recursive, is_supported_upload_file
 
 
 def test_user_create_full_name_is_optional():
@@ -45,6 +49,55 @@ def test_pattern_scan_sets_line_counts_and_finds_secret(tmp_path):
 
     assert files[0]["line_count"] == 2
     assert any(finding["rule_id"] == "DA-SECRET-001" for finding in findings)
+
+
+def test_archive_depth_limit_skips_remaining_archives_without_failing(tmp_path):
+    source = tmp_path / "source.zip"
+    nested_3 = tmp_path / "nested3.zip"
+    nested_2 = tmp_path / "nested2.zip"
+    nested_1 = tmp_path / "nested1.zip"
+
+    with zipfile.ZipFile(nested_3, "w") as zf:
+        zf.writestr("too_deep.zip", b"not a real zip")
+    with zipfile.ZipFile(nested_2, "w") as zf:
+        zf.write(nested_3, "nested3.zip")
+    with zipfile.ZipFile(nested_1, "w") as zf:
+        zf.write(nested_2, "nested2.zip")
+    with zipfile.ZipFile(source, "w") as zf:
+        zf.writestr("app.py", "print('scan me')\n")
+        zf.write(nested_1, "nested1.zip")
+
+    destination = tmp_path / "out"
+    extract_archive_recursive(source, destination, max_depth=1)
+
+    files = collect_source_files(destination)
+    assert [item["path"] for item in files] == ["app.py"]
+
+
+def test_compiled_upload_accepts_common_artifacts_and_keeps_direct_file(tmp_path):
+    assert is_supported_upload_file("demo.jar", "compiled") is True
+    assert is_supported_upload_file("demo.war", "compiled") is True
+    assert is_supported_upload_file("demo.jar", "source") is False
+
+    jar_file = tmp_path / "demo.jar"
+    jar_file.write_bytes(b"PK\x03\x04fake jar")
+    workspace = tmp_path / "workspace"
+
+    materialize_uploaded_scan_input(str(jar_file), workspace, "compiled")
+
+    assert (workspace / "demo.jar").read_bytes() == b"PK\x03\x04fake jar"
+
+
+def test_agent_finding_path_resolution_handles_common_agent_formats(tmp_path):
+    source = tmp_path / "repo" / "src"
+    source.mkdir(parents=True)
+    file_path = source / "app.py"
+    file_path.write_text("print('x')\n")
+
+    assert _extract_finding_file_path({"file_path": "src/app.py"}) == "src/app.py"
+    assert _extract_finding_file_path({"location": "src/app.py:12"}) == "src/app.py"
+    assert _resolve_existing_project_file(str(tmp_path / "repo"), str(file_path)) == "src/app.py"
+    assert _resolve_existing_project_file(str(tmp_path / "repo"), "repo/src/app.py") == "src/app.py"
 
 
 def test_choose_effective_default_branch_uses_existing_branch():

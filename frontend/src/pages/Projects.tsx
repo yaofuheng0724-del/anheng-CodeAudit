@@ -32,7 +32,11 @@ import {
   X
 } from "lucide-react";
 import { api } from "@/shared/config/database";
-import { validateZipFile } from "@/features/projects/services";
+import {
+  COMPILED_UPLOAD_ACCEPT,
+  SOURCE_UPLOAD_ACCEPT,
+  validateZipFile,
+} from "@/features/projects/services";
 import type { Project, CreateProjectForm } from "@/shared/types";
 import { uploadZipFile, getZipFileInfo, type ZipFileMeta } from "@/shared/utils/zipStorage";
 import { safeJsonParseArray } from "@/shared/utils/utils";
@@ -190,7 +194,7 @@ export default function Projects() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validation = validateZipFile(file);
+    const validation = validateZipFile(file, createForm.scan_mode || "source");
     if (!validation.valid) {
       toast.error(validation.error);
       return;
@@ -590,11 +594,15 @@ export default function Projects() {
                   >
                     <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">点击选择文件，最大支持4GB</p>
-                    <p className="text-xs text-muted-foreground/50 mt-1">.zip .rar .7z .tar .gz .tgz .tar.gz</p>
+                    <p className="text-xs text-muted-foreground/50 mt-1">
+                      {createForm.scan_mode === 'compiled'
+                        ? ".zip .jar .war .ear .aar .class .apk .aab .dex .so .dll .exe .elf"
+                        : ".zip .rar .7z .tar .gz .tgz .tar.gz"}
+                    </p>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".zip,.rar,.7z,.tar,.gz,.tgz,.tar.gz"
+                      accept={createForm.scan_mode === 'compiled' ? COMPILED_UPLOAD_ACCEPT : SOURCE_UPLOAD_ACCEPT}
                       onChange={handleFileSelect}
                       className="hidden"
                       disabled={uploading}
@@ -1078,12 +1086,12 @@ export default function Projects() {
                   <input
                     ref={editZipInputRef}
                     type="file"
-                    accept=".zip,.rar,.7z,.tar,.gz,.tgz,.tar.gz"
+                    accept={editForm.scan_mode === 'compiled' ? COMPILED_UPLOAD_ACCEPT : SOURCE_UPLOAD_ACCEPT}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const validation = validateZipFile(file);
+                        const validation = validateZipFile(file, editForm.scan_mode || "source");
                         if (!validation.valid) {
                           toast.error(validation.error || "文件无效");
                           e.target.value = '';

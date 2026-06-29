@@ -19,7 +19,11 @@ from app.models.project import Project
 from app.models.analysis import InstantAnalysis
 from app.models.user_config import UserConfig
 from app.services.llm.service import LLMService
-from app.services.archive_utils import extract_archive_recursive, is_supported_archive
+from app.services.archive_utils import (
+    extract_archive_recursive,
+    is_supported_compiled_artifact,
+    is_supported_upload_file,
+)
 from app.services.scanner import (
     get_analysis_config,
     parse_compiled_options,
@@ -41,6 +45,15 @@ def normalize_path(path: str) -> str:
     return path.replace("\\", "/")
 
 
+def materialize_uploaded_scan_input(file_path: str, extract_dir: Path, scan_mode: str) -> None:
+    source_path = Path(file_path)
+    if scan_mode == "compiled" and is_supported_compiled_artifact(source_path.name):
+        extract_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, extract_dir / source_path.name)
+        return
+    extract_archive_recursive(file_path, extract_dir)
+
+
 async def process_zip_task(task_id: str, file_path: str, db_session_factory, user_config: dict = None):
     """后台本地文件处理任务"""
     async with db_session_factory() as db:
@@ -54,11 +67,13 @@ async def process_zip_task(task_id: str, file_path: str, db_session_factory, use
             task.started_at = datetime.now(timezone.utc)
             await db.commit()
             extract_dir.mkdir(parents=True, exist_ok=True)
-            extract_archive_recursive(file_path, extract_dir)
+
+            scan_cfg = (user_config or {}).get("scan_config", {}) or {}
+            scan_mode = scan_cfg.get("scan_mode") or "source"
+            materialize_uploaded_scan_input(file_path, extract_dir, scan_mode)
 
             # 按 scan_config.task_type 分流：iac_scan 走 IaC Semgrep，
             # 其它走现有源码/编译产物扫描管道
-            scan_cfg = (user_config or {}).get("scan_config", {}) or {}
             requested_task_type = scan_cfg.get("task_type") or "repository"
 
             if requested_task_type == "iac_scan":
@@ -111,8 +126,13 @@ async def scan_zip(
     # 解析项目的 scan_mode 作为回退；请求显式提供时必须与项目一致
     project_scan_mode = (project.scan_mode or "source")
 
-    if not file.filename or not is_supported_archive(file.filename):
-        raise HTTPException(status_code=400, detail="请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件")
+    if not file.filename or not is_supported_upload_file(file.filename, project_scan_mode):
+        detail = (
+            "请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件，或 jar、war、ear、aar、class、apk、aab、dex、so、dll、exe、elf 等编译后产物"
+            if project_scan_mode == "compiled"
+            else "请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件"
+        )
+        raise HTTPException(status_code=400, detail=detail)
         
     # Save Uploaded File to temp
     file_id = str(uuid.uuid4())

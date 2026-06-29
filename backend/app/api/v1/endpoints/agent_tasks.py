@@ -34,6 +34,12 @@ from app.models.project import Project
 from app.models.user import User
 from app.models.user_config import UserConfig
 from app.services.scanner import merge_whitelist_config, _is_whitelisted_finding
+from app.services.quick_scan import (
+    collect_source_files,
+    deduplicate_findings,
+    run_pattern_scan,
+    run_semgrep_scan,
+)
 from app.services.agent.event_manager import EventManager
 from app.services.agent.streaming import StreamHandler, StreamEvent, StreamEventType
 from app.services.git_ssh_service import GitSSHOperations
@@ -53,6 +59,107 @@ _running_tasks: Dict[str, Any] = {}
 
 # 🔥 运行中的 asyncio Tasks（用于强制取消）
 _running_asyncio_tasks: Dict[str, asyncio.Task] = {}
+
+
+def _extract_finding_file_path(finding: Dict[str, Any]) -> Optional[str]:
+    file_path = finding.get("file_path") or finding.get("file")
+    if file_path:
+        return str(file_path)
+
+    location = finding.get("location")
+    if isinstance(location, str):
+        return location.split(":", 1)[0] if ":" in location else location
+    return None
+
+
+def _resolve_existing_project_file(project_root: str, file_path: Optional[str]) -> Optional[str]:
+    if not file_path:
+        return None
+
+    root = os.path.abspath(project_root)
+    clean_path = str(file_path).split(":", 1)[0].strip().replace("\\", "/")
+    if not clean_path:
+        return None
+
+    candidates = []
+    if os.path.isabs(clean_path):
+        candidates.append(os.path.abspath(clean_path))
+        try:
+            rel_from_root = os.path.relpath(clean_path, root).replace("\\", "/")
+            if not rel_from_root.startswith("../"):
+                candidates.append(os.path.join(root, rel_from_root))
+        except ValueError:
+            pass
+    else:
+        candidates.append(os.path.join(root, clean_path))
+        parts = clean_path.split("/")
+        for index in range(1, len(parts)):
+            candidates.append(os.path.join(root, *parts[index:]))
+
+    seen = set()
+    for candidate in candidates:
+        abs_candidate = os.path.abspath(candidate)
+        if abs_candidate in seen:
+            continue
+        seen.add(abs_candidate)
+        if os.path.isfile(abs_candidate):
+            try:
+                rel = os.path.relpath(abs_candidate, root)
+            except ValueError:
+                return abs_candidate
+            return rel.replace("\\", "/")
+
+    basename = os.path.basename(clean_path)
+    if basename:
+        matches = []
+        for current_root, _, filenames in os.walk(root):
+            if basename in filenames:
+                matches.append(os.path.join(current_root, basename))
+                if len(matches) > 1:
+                    break
+        if len(matches) == 1:
+            return os.path.relpath(matches[0], root).replace("\\", "/")
+
+    return None
+
+
+def _collect_rule_findings_for_agent(project_root: str, user_config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    scan_config = (user_config or {}).get("scan_config", {}) or {}
+    exclude_patterns = scan_config.get("exclude_patterns", []) or []
+    target_files = scan_config.get("file_paths", []) or []
+
+    source_files = collect_source_files(
+        project_root,
+        exclude_patterns=exclude_patterns,
+        target_files=target_files,
+    )
+    if not source_files:
+        return []
+
+    findings = deduplicate_findings(
+        run_semgrep_scan(project_root, source_files, exclude_patterns=exclude_patterns)
+        + run_pattern_scan(source_files)
+    )
+
+    normalized: List[Dict[str, Any]] = []
+    for finding in findings:
+        normalized.append({
+            "vulnerability_type": finding.get("issue_type") or "other",
+            "severity": finding.get("severity", "medium"),
+            "title": finding.get("title") or finding.get("rule_id") or "规则扫描发现",
+            "description": finding.get("description") or "",
+            "file_path": finding.get("file_path"),
+            "line_start": finding.get("line_number"),
+            "line_end": finding.get("line_number"),
+            "code_snippet": finding.get("code_snippet"),
+            "source": finding.get("source"),
+            "sink": finding.get("sink"),
+            "dataflow_path": finding.get("dataflow_path"),
+            "code_context": finding.get("code_context"),
+            "suggestion": finding.get("suggestion"),
+            "confidence": 0.9,
+        })
+    return normalized
 
 
 # ============ Schemas ============
@@ -729,9 +836,31 @@ async def _execute_agent_task(task_id: str):
                 except Exception as wl_err:
                     logger.warning(f"[AgentTask] Task {task_id}: whitelist filter failed, skipping: {wl_err}")
 
+                if not findings:
+                    rule_findings = _collect_rule_findings_for_agent(project_root, user_config)
+                    if rule_findings:
+                        logger.info(
+                            "[AgentTask] Task %s: Agent returned no findings, using %s rule-based fallback findings",
+                            task_id,
+                            len(rule_findings),
+                        )
+                        findings = rule_findings
+
                 # 🔥 v2.1: 传递 project_root 用于文件路径验证
                 saved_count = await _save_findings(db, task_id, findings, project_root=project_root)
                 logger.info(f"[AgentTask] Saved {saved_count}/{len(findings)} findings (filtered {len(findings) - saved_count} hallucinations)")
+
+                if saved_count == 0 and findings:
+                    rule_findings = _collect_rule_findings_for_agent(project_root, user_config)
+                    if rule_findings:
+                        logger.info(
+                            "[AgentTask] Task %s: Agent findings were not persistable, saving %s rule-based fallback findings",
+                            task_id,
+                            len(rule_findings),
+                        )
+                        findings = rule_findings
+                        saved_count = await _save_findings(db, task_id, findings, project_root=project_root)
+                        logger.info("[AgentTask] Fallback saved %s/%s findings", saved_count, len(findings))
 
                 # 更新任务统计
                 # 🔥 CRITICAL FIX: 在设置完成前再次检查取消状态
@@ -770,7 +899,7 @@ async def _execute_agent_task(task_id: str):
                 files_with_findings_set = set()
                 for f in findings:
                     if isinstance(f, dict):
-                        file_path = f.get("file_path") or f.get("file") or f.get("location", "").split(":")[0]
+                        file_path = _extract_finding_file_path(f)
                         if file_path:
                             files_with_findings_set.add(file_path)
                 task.files_with_findings = len(files_with_findings_set)
@@ -1471,26 +1600,18 @@ async def _save_findings(
                 type_enum = VulnerabilityType.DESERIALIZATION
 
             # 🔥 Handle file path (support multiple field names)
-            file_path = (
-                finding.get("file_path") or
-                finding.get("file") or
-                finding.get("location", "").split(":")[0] if ":" in finding.get("location", "") else finding.get("location")
-            )
+            file_path = _extract_finding_file_path(finding)
 
             # 🔥 v2.1: 文件路径验证 - 过滤幻觉发现
             if project_root and file_path:
-                # 清理路径（移除可能的行号）
-                clean_path = file_path.split(":")[0].strip() if ":" in file_path else file_path.strip()
-                full_path = os.path.join(project_root, clean_path)
-
-                if not os.path.isfile(full_path):
-                    # 尝试作为绝对路径
-                    if not (os.path.isabs(clean_path) and os.path.isfile(clean_path)):
-                        logger.warning(
-                            f"[SaveFindings] 🚫 跳过幻觉发现: 文件不存在 '{file_path}' "
-                            f"(title: {finding.get('title', 'N/A')[:50]})"
-                        )
-                        continue  # 跳过这个发现
+                resolved_path = _resolve_existing_project_file(project_root, file_path)
+                if not resolved_path:
+                    logger.warning(
+                        f"[SaveFindings] 🚫 跳过幻觉发现: 文件不存在 '{file_path}' "
+                        f"(title: {finding.get('title', 'N/A')[:50]})"
+                    )
+                    continue  # 跳过这个发现
+                file_path = resolved_path
 
             # 🔥 Handle line numbers (support multiple formats)
             line_start = finding.get("line_start") or finding.get("line")

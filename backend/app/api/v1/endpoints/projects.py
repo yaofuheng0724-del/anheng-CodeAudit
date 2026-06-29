@@ -28,7 +28,10 @@ from app.services.ai_investigation import (
     set_batch_progress,
 )
 from app.core.config import settings
-from app.services.archive_utils import extract_archive_recursive, is_supported_archive
+from app.services.archive_utils import (
+    extract_archive_recursive,
+    is_supported_upload_file,
+)
 from app.services.quick_scan import collect_source_files
 from app.services.scanner import (
     get_github_branches,
@@ -778,8 +781,14 @@ async def upload_project_zip(
     if project.source_type != "zip":
         raise HTTPException(status_code=400, detail="仅本地文件类型项目可以上传源代码文件")
     
-    if not file.filename or not is_supported_archive(file.filename):
-        raise HTTPException(status_code=400, detail="请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件")
+    project_scan_mode = project.scan_mode or "source"
+    if not file.filename or not is_supported_upload_file(file.filename, project_scan_mode):
+        detail = (
+            "请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件，或 jar、war、ear、aar、class、apk、aab、dex、so、dll、exe、elf 等编译后产物"
+            if project_scan_mode == "compiled"
+            else "请上传 zip、rar、7z、tar、gz、tar.gz 等本地文件"
+        )
+        raise HTTPException(status_code=400, detail=detail)
     
     # 保存到临时文件
     temp_file_id = str(uuid.uuid4())

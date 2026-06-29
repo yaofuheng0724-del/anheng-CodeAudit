@@ -11,6 +11,19 @@ const SUPPORTED_ARCHIVE_EXTENSIONS = [
   ".tar.gz",
 ];
 
+const SUPPORTED_COMPILED_EXTENSIONS = [
+  ".apk", ".aab", ".dex",
+  ".jar", ".war", ".ear", ".aar", ".class",
+  ".so", ".dll", ".exe", ".elf",
+  ".o", ".obj", ".a", ".lib", ".dylib",
+];
+
+export const SOURCE_UPLOAD_ACCEPT = SUPPORTED_ARCHIVE_EXTENSIONS.join(",");
+export const COMPILED_UPLOAD_ACCEPT = [
+  ...SUPPORTED_ARCHIVE_EXTENSIONS,
+  ...SUPPORTED_COMPILED_EXTENSIONS,
+].join(",");
+
 /**
  * 上传本地文件并启动扫描
  */
@@ -98,11 +111,19 @@ export async function scanStoredZipFile(params: {
   return res.data.task_id;
 }
 
-export function validateZipFile(file: File): { valid: boolean; error?: string } {
+export function validateZipFile(file: File, scanMode: ProjectScanMode = "source"): { valid: boolean; error?: string } {
   const normalizedName = file.name.toLowerCase();
-  const isSupported = SUPPORTED_ARCHIVE_EXTENSIONS.some((ext) => normalizedName.endsWith(ext));
+  const supportedExtensions = scanMode === "compiled"
+    ? [...SUPPORTED_ARCHIVE_EXTENSIONS, ...SUPPORTED_COMPILED_EXTENSIONS]
+    : SUPPORTED_ARCHIVE_EXTENSIONS;
+  const isSupported = supportedExtensions.some((ext) => normalizedName.endsWith(ext));
   if (!isSupported) {
-    return { valid: false, error: '请上传 zip、rar、7z、tar、gz、tgz、tar.gz 等本地文件' };
+    return {
+      valid: false,
+      error: scanMode === "compiled"
+        ? '请上传 zip、rar、7z、tar、gz、tgz、tar.gz，或 jar、war、ear、aar、class、apk、aab、dex、so、dll、exe、elf 等编译后产物'
+        : '请上传 zip、rar、7z、tar、gz、tgz、tar.gz 等本地文件',
+    };
   }
 
   const maxSize = 2 * 1024 * 1024 * 1024;

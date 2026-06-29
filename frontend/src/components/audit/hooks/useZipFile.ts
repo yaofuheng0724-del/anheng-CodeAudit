@@ -42,7 +42,7 @@ export function useZipFile(project: Project | undefined, projects: Project[]) {
         return;
       }
 
-      const validation = validateZipFile(file);
+      const validation = validateZipFile(file, project?.scan_mode || "source");
       if (!validation.valid) {
         toast.error(validation.error || "文件无效");
         if (inputElement) inputElement.value = "";
@@ -53,7 +53,7 @@ export function useZipFile(project: Project | undefined, projects: Project[]) {
       const sizeText = formatFileSize(file.size);
       toast.success(`已选择文件: ${file.name} (${sizeText})`);
     },
-    []
+    [project?.scan_mode]
   );
 
   const reset = useCallback(() => {

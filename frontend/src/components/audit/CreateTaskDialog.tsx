@@ -45,6 +45,8 @@ import WhitelistConfig from "./components/WhitelistConfig";
 
 import { runRepositoryAudit } from "@/features/projects/services/repoScan";
 import {
+  COMPILED_UPLOAD_ACCEPT,
+  SOURCE_UPLOAD_ACCEPT,
   scanZipFile,
   scanStoredZipFile,
   validateZipFile,
@@ -527,11 +529,11 @@ export default function CreateTaskDialog({
                           更换文件
                           <input
                             type="file"
-                            accept=".zip,.rar,.7z,.tar,.gz,.tgz,.tar.gz"
+                            accept={selectedProject.scan_mode === "compiled" ? COMPILED_UPLOAD_ACCEPT : SOURCE_UPLOAD_ACCEPT}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const v = validateZipFile(file);
+                                const v = validateZipFile(file, selectedProject.scan_mode || "source");
                                 if (!v.valid) {
                                   toast.error(v.error || "文件无效");
                                   e.target.value = "";
@@ -580,11 +582,11 @@ export default function CreateTaskDialog({
                           上传文件
                           <input
                             type="file"
-                            accept=".zip,.rar,.7z,.tar,.gz,.tgz,.tar.gz"
+                            accept={selectedProject.scan_mode === "compiled" ? COMPILED_UPLOAD_ACCEPT : SOURCE_UPLOAD_ACCEPT}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const v = validateZipFile(file);
+                                const v = validateZipFile(file, selectedProject.scan_mode || "source");
                                 if (!v.valid) {
                                   toast.error(v.error || "文件无效");
                                   e.target.value = "";
