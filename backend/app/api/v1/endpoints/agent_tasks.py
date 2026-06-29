@@ -132,6 +132,7 @@ class AgentTaskResponse(BaseModel):
     indexed_files: int = 0
     analyzed_files: int = 0
     total_chunks: int = 0
+    files_with_findings: int = 0
     
     # Agent 统计
     total_iterations: int = 0
@@ -351,6 +352,7 @@ def _serialize_agent_task(task: AgentTask) -> AgentTaskResponse:
         "total_lines": task.total_lines or 0,
         "indexed_files": task.indexed_files or 0,
         "analyzed_files": task.analyzed_files or 0,
+        "files_with_findings": task.files_with_findings or 0,
         "total_chunks": task.total_chunks or 0,
         "total_iterations": total_iterations,
         "tool_calls_count": tool_calls_count,
@@ -714,7 +716,7 @@ async def _execute_agent_task(task_id: str):
 
                 # 应用白名单过滤：合并 per-task 和全局白名单
                 try:
-                    agent_config_data = json.loads(task.agent_config) if task.agent_config else {}
+                    agent_config_data = _get_agent_config_dict(task)
                     task_whitelist = {k: v for k in ("functionWhitelist", "vulnerabilityWhitelist", "sanitizerFunctions")
                                       if agent_config_data.get(k)}
                     global_other_config = (user_config or {}).get("otherConfig", {})
@@ -1790,11 +1792,11 @@ async def create_agent_task(
         max_iterations=request.max_iterations or 50,
         timeout_seconds=request.timeout_seconds or 1800,
         created_by=current_user.id,
-        agent_config=json.dumps({
+        agent_config={
             "functionWhitelist": request.functionWhitelist or [],
             "vulnerabilityWhitelist": request.vulnerabilityWhitelist or [],
             "sanitizerFunctions": request.sanitizerFunctions or [],
-        }),
+        },
     )
     
     db.add(task)
@@ -1806,7 +1808,7 @@ async def create_agent_task(
     
     logger.info(f"Created agent task {task.id} for project {project.name}")
     
-    return task
+    return _serialize_agent_task(task)
 
 
 async def _fix_stale_findings_count(db: AsyncSession, tasks: list[AgentTask]) -> None:

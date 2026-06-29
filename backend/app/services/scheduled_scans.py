@@ -262,11 +262,11 @@ class ScheduledScanRunner:
                             max_iterations=50,
                             timeout_seconds=1800,
                             scheduled_scan_id=schedule.id,
-                            agent_config=json.dumps({
+                            agent_config={
                                 "functionWhitelist": function_whitelist,
                                 "vulnerabilityWhitelist": vulnerability_whitelist,
                                 "sanitizerFunctions": sanitizer_functions,
-                            }),
+                            },
                         )
                         db.add(task)
                         await db.flush()

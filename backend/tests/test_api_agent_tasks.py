@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.api.v1.endpoints.agent_tasks import AgentTaskResponse, list_agent_tasks
+from app.api.v1.endpoints.agent_tasks import AgentTaskResponse, _serialize_agent_task, list_agent_tasks
 from app.models.agent_task import AgentTask, AgentTaskStatus
 
 
@@ -39,6 +39,7 @@ def _make_task(**overrides):
         "total_lines": 500,
         "indexed_files": 10,
         "analyzed_files": 5,
+        "files_with_findings": 1,
         "total_chunks": 20,
         "total_iterations": 3,
         "tool_calls_count": 7,
@@ -95,6 +96,7 @@ async def test_list_agent_tasks_returns_serialized_response_models():
     assert isinstance(result[0], AgentTaskResponse)
     assert result[0].id == TASK_ID
     assert result[0].total_findings == 2
+    assert result[0].files_with_findings == 1
     assert result[0].verified_findings == 1
     assert result[0].functionWhitelist == ["safe_query"]
     assert result[0].vulnerabilityWhitelist == ["known-fp"]
@@ -118,3 +120,21 @@ async def test_list_agent_tasks_valid_status_filter_does_not_call_status_as_enum
     result = await list_agent_tasks(status=AgentTaskStatus.RUNNING, db=db, current_user=_make_user())
 
     assert result == []
+
+
+def test_serialize_agent_task_includes_agent_config_and_file_count():
+    task = _make_task(
+        files_with_findings=3,
+        agent_config={
+            "functionWhitelist": ["safe_query"],
+            "vulnerabilityWhitelist": ["known-fp"],
+            "sanitizerFunctions": ["escape_html"],
+        },
+    )
+
+    result = _serialize_agent_task(task)
+
+    assert result.files_with_findings == 3
+    assert result.functionWhitelist == ["safe_query"]
+    assert result.vulnerabilityWhitelist == ["known-fp"]
+    assert result.sanitizerFunctions == ["escape_html"]

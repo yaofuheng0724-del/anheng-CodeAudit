@@ -317,11 +317,11 @@ async def create_schedule(
             max_iterations=50,
             timeout_seconds=1800,
             scheduled_scan_id=schedule.id,
-            agent_config=json.dumps({
+            agent_config={
                 "functionWhitelist": payload.functionWhitelist or [],
                 "vulnerabilityWhitelist": payload.vulnerabilityWhitelist or [],
                 "sanitizerFunctions": payload.sanitizerFunctions or [],
-            }),
+            },
         )
     else:
         from app.models.audit import AuditTask
