@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第8批",
+  "description": "批量生成的第8批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-121",
+      "name": "金丝雀发布配置不当",
+      "description": "检测金丝雀发布配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查金丝雀发布的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置金丝雀发布",
+      "enabled": true,
+      "sort_order": 121
+    },
+    {
+      "rule_code": "BATCH-122",
+      "name": "缺少A/B测试保护",
+      "description": "检测缺少A/B测试保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的A/B测试保护措施。",
+      "fix_suggestion": "添加A/B测试保护措施",
+      "enabled": true,
+      "sort_order": 122
+    },
+    {
+      "rule_code": "BATCH-123",
+      "name": "不安全的特性开关实现",
+      "description": "检测特性开关实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查特性开关的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现特性开关",
+      "enabled": true,
+      "sort_order": 123
+    },
+    {
+      "rule_code": "BATCH-124",
+      "name": "配置热更新验证不足",
+      "description": "检测配置热更新验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查配置热更新的验证逻辑是否充分。",
+      "fix_suggestion": "增强配置热更新验证逻辑",
+      "enabled": true,
+      "sort_order": 124
+    },
+    {
+      "rule_code": "BATCH-125",
+      "name": "灰度发布信息泄露",
+      "description": "检测灰度发布可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过灰度发布泄露敏感信息。",
+      "fix_suggestion": "防止通过灰度发布泄露信息",
+      "enabled": true,
+      "sort_order": 125
+    },
+    {
+      "rule_code": "BATCH-126",
+      "name": "流量控制代码质量问题",
+      "description": "检测流量控制相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查流量控制相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进流量控制代码质量",
+      "enabled": true,
+      "sort_order": 126
+    },
+    {
+      "rule_code": "BATCH-127",
+      "name": "缺少限流错误处理",
+      "description": "检测限流错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查限流相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善限流错误处理",
+      "enabled": true,
+      "sort_order": 127
+    },
+    {
+      "rule_code": "BATCH-128",
+      "name": "熔断性能问题",
+      "description": "检测熔断相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查熔断是否存在性能优化空间。",
+      "fix_suggestion": "优化熔断性能",
+      "enabled": true,
+      "sort_order": 128
+    },
+    {
+      "rule_code": "BATCH-129",
+      "name": "缺少降级文档",
+      "description": "检测降级缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查降级是否有充分的文档说明。",
+      "fix_suggestion": "添加降级文档",
+      "enabled": true,
+      "sort_order": 129
+    },
+    {
+      "rule_code": "BATCH-130",
+      "name": "重试 - 校验",
+      "description": "检测重试相关的校验问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在重试相关的校验安全问题。",
+      "fix_suggestion": "修复重试相关的校验问题",
+      "enabled": true,
+      "sort_order": 130
+    },
+    {
+      "rule_code": "BATCH-131",
+      "name": "超时配置不当",
+      "description": "检测超时配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查超时的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置超时",
+      "enabled": true,
+      "sort_order": 131
+    },
+    {
+      "rule_code": "BATCH-132",
+      "name": "缺少幂等性保护",
+      "description": "检测缺少幂等性保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的幂等性保护措施。",
+      "fix_suggestion": "添加幂等性保护措施",
+      "enabled": true,
+      "sort_order": 132
+    },
+    {
+      "rule_code": "BATCH-133",
+      "name": "不安全的一致性实现",
+      "description": "检测一致性实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查一致性的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现一致性",
+      "enabled": true,
+      "sort_order": 133
+    },
+    {
+      "rule_code": "BATCH-134",
+      "name": "可用性验证不足",
+      "description": "检测可用性验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查可用性的验证逻辑是否充分。",
+      "fix_suggestion": "增强可用性验证逻辑",
+      "enabled": true,
+      "sort_order": 134
+    },
+    {
+      "rule_code": "BATCH-135",
+      "name": "分区容错信息泄露",
+      "description": "检测分区容错可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过分区容错泄露敏感信息。",
+      "fix_suggestion": "防止通过分区容错泄露信息",
+      "enabled": true,
+      "sort_order": 135
+    },
+    {
+      "rule_code": "BATCH-136",
+      "name": "CAP理论代码质量问题",
+      "description": "检测CAP理论相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查CAP理论相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进CAP理论代码质量",
+      "enabled": true,
+      "sort_order": 136
+    },
+    {
+      "rule_code": "BATCH-137",
+      "name": "缺少BASE理论错误处理",
+      "description": "检测BASE理论错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查BASE理论相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善BASE理论错误处理",
+      "enabled": true,
+      "sort_order": 137
+    },
+    {
+      "rule_code": "BATCH-138",
+      "name": "认证性能问题",
+      "description": "检测认证相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查认证是否存在性能优化空间。",
+      "fix_suggestion": "优化认证性能",
+      "enabled": true,
+      "sort_order": 138
+    },
+    {
+      "rule_code": "BATCH-139",
+      "name": "缺少授权文档",
+      "description": "检测授权缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查授权是否有充分的文档说明。",
+      "fix_suggestion": "添加授权文档",
+      "enabled": true,
+      "sort_order": 139
+    },
+    {
+      "rule_code": "BATCH-140",
+      "name": "会话管理 - 检测",
+      "description": "检测会话管理相关的检测问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在会话管理相关的检测安全问题。",
+      "fix_suggestion": "修复会话管理相关的检测问题",
+      "enabled": true,
+      "sort_order": 140
+    }
+  ]
+}

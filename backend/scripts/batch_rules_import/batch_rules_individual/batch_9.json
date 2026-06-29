@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第9批",
+  "description": "批量生成的第9批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-141",
+      "name": "输入验证配置不当",
+      "description": "检测输入验证配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查输入验证的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置输入验证",
+      "enabled": true,
+      "sort_order": 141
+    },
+    {
+      "rule_code": "BATCH-142",
+      "name": "缺少输出编码保护",
+      "description": "检测缺少输出编码保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的输出编码保护措施。",
+      "fix_suggestion": "添加输出编码保护措施",
+      "enabled": true,
+      "sort_order": 142
+    },
+    {
+      "rule_code": "BATCH-143",
+      "name": "不安全的加密实现",
+      "description": "检测加密实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查加密的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现加密",
+      "enabled": true,
+      "sort_order": 143
+    },
+    {
+      "rule_code": "BATCH-144",
+      "name": "密钥管理验证不足",
+      "description": "检测密钥管理验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查密钥管理的验证逻辑是否充分。",
+      "fix_suggestion": "增强密钥管理验证逻辑",
+      "enabled": true,
+      "sort_order": 144
+    },
+    {
+      "rule_code": "BATCH-145",
+      "name": "错误处理信息泄露",
+      "description": "检测错误处理可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过错误处理泄露敏感信息。",
+      "fix_suggestion": "防止通过错误处理泄露信息",
+      "enabled": true,
+      "sort_order": 145
+    },
+    {
+      "rule_code": "BATCH-146",
+      "name": "日志记录代码质量问题",
+      "description": "检测日志记录相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查日志记录相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进日志记录代码质量",
+      "enabled": true,
+      "sort_order": 146
+    },
+    {
+      "rule_code": "BATCH-147",
+      "name": "缺少配置管理错误处理",
+      "description": "检测配置管理错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查配置管理相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善配置管理错误处理",
+      "enabled": true,
+      "sort_order": 147
+    },
+    {
+      "rule_code": "BATCH-148",
+      "name": "文件操作性能问题",
+      "description": "检测文件操作相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查文件操作是否存在性能优化空间。",
+      "fix_suggestion": "优化文件操作性能",
+      "enabled": true,
+      "sort_order": 148
+    },
+    {
+      "rule_code": "BATCH-149",
+      "name": "缺少网络通信文档",
+      "description": "检测网络通信缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查网络通信是否有充分的文档说明。",
+      "fix_suggestion": "添加网络通信文档",
+      "enabled": true,
+      "sort_order": 149
+    },
+    {
+      "rule_code": "BATCH-150",
+      "name": "数据库 - 加密",
+      "description": "检测数据库相关的加密问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在数据库相关的加密安全问题。",
+      "fix_suggestion": "修复数据库相关的加密问题",
+      "enabled": true,
+      "sort_order": 150
+    },
+    {
+      "rule_code": "BATCH-151",
+      "name": "缓存配置不当",
+      "description": "检测缓存配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查缓存的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置缓存",
+      "enabled": true,
+      "sort_order": 151
+    },
+    {
+      "rule_code": "BATCH-152",
+      "name": "缺少队列保护",
+      "description": "检测缺少队列保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的队列保护措施。",
+      "fix_suggestion": "添加队列保护措施",
+      "enabled": true,
+      "sort_order": 152
+    },
+    {
+      "rule_code": "BATCH-153",
+      "name": "不安全的定时任务实现",
+      "description": "检测定时任务实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查定时任务的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现定时任务",
+      "enabled": true,
+      "sort_order": 153
+    },
+    {
+      "rule_code": "BATCH-154",
+      "name": "API设计验证不足",
+      "description": "检测API设计验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查API设计的验证逻辑是否充分。",
+      "fix_suggestion": "增强API设计验证逻辑",
+      "enabled": true,
+      "sort_order": 154
+    },
+    {
+      "rule_code": "BATCH-155",
+      "name": "微服务信息泄露",
+      "description": "检测微服务可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过微服务泄露敏感信息。",
+      "fix_suggestion": "防止通过微服务泄露信息",
+      "enabled": true,
+      "sort_order": 155
+    },
+    {
+      "rule_code": "BATCH-156",
+      "name": "容器代码质量问题",
+      "description": "检测容器相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查容器相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进容器代码质量",
+      "enabled": true,
+      "sort_order": 156
+    },
+    {
+      "rule_code": "BATCH-157",
+      "name": "缺少Kubernetes错误处理",
+      "description": "检测Kubernetes错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查Kubernetes相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善Kubernetes错误处理",
+      "enabled": true,
+      "sort_order": 157
+    },
+    {
+      "rule_code": "BATCH-158",
+      "name": "云服务性能问题",
+      "description": "检测云服务相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查云服务是否存在性能优化空间。",
+      "fix_suggestion": "优化云服务性能",
+      "enabled": true,
+      "sort_order": 158
+    },
+    {
+      "rule_code": "BATCH-159",
+      "name": "缺少第三方集成文档",
+      "description": "检测第三方集成缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查第三方集成是否有充分的文档说明。",
+      "fix_suggestion": "添加第三方集成文档",
+      "enabled": true,
+      "sort_order": 159
+    },
+    {
+      "rule_code": "BATCH-160",
+      "name": "依赖管理 - 凭证",
+      "description": "检测依赖管理相关的凭证问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在依赖管理相关的凭证安全问题。",
+      "fix_suggestion": "修复依赖管理相关的凭证问题",
+      "enabled": true,
+      "sort_order": 160
+    }
+  ]
+}

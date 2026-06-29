@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第11批",
+  "description": "批量生成的第11批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-181",
+      "name": "数据脱敏配置不当",
+      "description": "检测数据脱敏配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查数据脱敏的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置数据脱敏",
+      "enabled": true,
+      "sort_order": 181
+    },
+    {
+      "rule_code": "BATCH-182",
+      "name": "缺少数据分类保护",
+      "description": "检测缺少数据分类保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的数据分类保护措施。",
+      "fix_suggestion": "添加数据分类保护措施",
+      "enabled": true,
+      "sort_order": 182
+    },
+    {
+      "rule_code": "BATCH-183",
+      "name": "不安全的访问控制实现",
+      "description": "检测访问控制实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查访问控制的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现访问控制",
+      "enabled": true,
+      "sort_order": 183
+    },
+    {
+      "rule_code": "BATCH-184",
+      "name": "多因素认证验证不足",
+      "description": "检测多因素认证验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查多因素认证的验证逻辑是否充分。",
+      "fix_suggestion": "增强多因素认证验证逻辑",
+      "enabled": true,
+      "sort_order": 184
+    },
+    {
+      "rule_code": "BATCH-185",
+      "name": "单点登录信息泄露",
+      "description": "检测单点登录可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过单点登录泄露敏感信息。",
+      "fix_suggestion": "防止通过单点登录泄露信息",
+      "enabled": true,
+      "sort_order": 185
+    },
+    {
+      "rule_code": "BATCH-186",
+      "name": "OAuth代码质量问题",
+      "description": "检测OAuth相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查OAuth相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进OAuth代码质量",
+      "enabled": true,
+      "sort_order": 186
+    },
+    {
+      "rule_code": "BATCH-187",
+      "name": "缺少JWT错误处理",
+      "description": "检测JWT错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查JWT相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善JWT错误处理",
+      "enabled": true,
+      "sort_order": 187
+    },
+    {
+      "rule_code": "BATCH-188",
+      "name": "SAML性能问题",
+      "description": "检测SAML相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查SAML是否存在性能优化空间。",
+      "fix_suggestion": "优化SAML性能",
+      "enabled": true,
+      "sort_order": 188
+    },
+    {
+      "rule_code": "BATCH-189",
+      "name": "缺少证书管理文档",
+      "description": "检测证书管理缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查证书管理是否有充分的文档说明。",
+      "fix_suggestion": "添加证书管理文档",
+      "enabled": true,
+      "sort_order": 189
+    },
+    {
+      "rule_code": "BATCH-190",
+      "name": "PKI - 审核",
+      "description": "检测PKI相关的审核问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在PKI相关的审核安全问题。",
+      "fix_suggestion": "修复PKI相关的审核问题",
+      "enabled": true,
+      "sort_order": 190
+    },
+    {
+      "rule_code": "BATCH-191",
+      "name": "TLS配置不当",
+      "description": "检测TLS配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查TLS的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置TLS",
+      "enabled": true,
+      "sort_order": 191
+    },
+    {
+      "rule_code": "BATCH-192",
+      "name": "缺少SSL保护",
+      "description": "检测缺少SSL保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的SSL保护措施。",
+      "fix_suggestion": "添加SSL保护措施",
+      "enabled": true,
+      "sort_order": 192
+    },
+    {
+      "rule_code": "BATCH-193",
+      "name": "不安全的HTTPS实现",
+      "description": "检测HTTPS实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查HTTPS的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现HTTPS",
+      "enabled": true,
+      "sort_order": 193
+    },
+    {
+      "rule_code": "BATCH-194",
+      "name": "WAF验证不足",
+      "description": "检测WAF验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查WAF的验证逻辑是否充分。",
+      "fix_suggestion": "增强WAF验证逻辑",
+      "enabled": true,
+      "sort_order": 194
+    },
+    {
+      "rule_code": "BATCH-195",
+      "name": "IPS信息泄露",
+      "description": "检测IPS可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过IPS泄露敏感信息。",
+      "fix_suggestion": "防止通过IPS泄露信息",
+      "enabled": true,
+      "sort_order": 195
+    },
+    {
+      "rule_code": "BATCH-196",
+      "name": "IDS代码质量问题",
+      "description": "检测IDS相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查IDS相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进IDS代码质量",
+      "enabled": true,
+      "sort_order": 196
+    },
+    {
+      "rule_code": "BATCH-197",
+      "name": "缺少防火墙错误处理",
+      "description": "检测防火墙错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查防火墙相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善防火墙错误处理",
+      "enabled": true,
+      "sort_order": 197
+    },
+    {
+      "rule_code": "BATCH-198",
+      "name": "网络分段性能问题",
+      "description": "检测网络分段相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查网络分段是否存在性能优化空间。",
+      "fix_suggestion": "优化网络分段性能",
+      "enabled": true,
+      "sort_order": 198
+    },
+    {
+      "rule_code": "BATCH-199",
+      "name": "缺少VPN文档",
+      "description": "检测VPN缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查VPN是否有充分的文档说明。",
+      "fix_suggestion": "添加VPN文档",
+      "enabled": true,
+      "sort_order": 199
+    },
+    {
+      "rule_code": "BATCH-200",
+      "name": "远程访问 - 随机数",
+      "description": "检测远程访问相关的随机数问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在远程访问相关的随机数安全问题。",
+      "fix_suggestion": "修复远程访问相关的随机数问题",
+      "enabled": true,
+      "sort_order": 200
+    }
+  ]
+}

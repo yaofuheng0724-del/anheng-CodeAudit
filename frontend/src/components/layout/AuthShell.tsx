@@ -75,7 +75,7 @@ export default function AuthShell({
             <span className="mx-2">|</span>
             <span className="hover:text-[#86909c] cursor-pointer">网站地图</span>
             <p className="mt-1">
-              杭州安恒信息技术股份有限公司 版权所有©2007-2025
+              {BRAND_COMPANY_NAME} 版权所有©2007-2025
             </p>
           </div>
         </div>

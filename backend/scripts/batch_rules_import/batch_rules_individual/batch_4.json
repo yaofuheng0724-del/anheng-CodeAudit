@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第4批",
+  "description": "批量生成的第4批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-041",
+      "name": "不安全的字符编码 - 编码问题",
+      "description": "检测字符编码处理不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查字符编码处理是否安全，防止编码注入攻击。",
+      "fix_suggestion": "统一使用UTF-8编码，正确处理多字节字符",
+      "enabled": true,
+      "sort_order": 41
+    },
+    {
+      "rule_code": "BATCH-042",
+      "name": "缺少资源释放 - 资源泄露",
+      "description": "检测未正确释放资源的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查文件句柄、数据库连接等资源是否被正确释放。",
+      "fix_suggestion": "使用try-finally或with语句确保资源释放",
+      "enabled": true,
+      "sort_order": 42
+    },
+    {
+      "rule_code": "BATCH-043",
+      "name": "不安全的竞争条件 - 并发问题",
+      "description": "检测存在竞争条件的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查并发操作是否存在竞争条件风险。",
+      "fix_suggestion": "使用适当的同步机制",
+      "enabled": true,
+      "sort_order": 43
+    },
+    {
+      "rule_code": "BATCH-044",
+      "name": "硬编码的秘密 - 配置管理",
+      "description": "检测硬编码在代码中的各种秘密",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查是否在代码中硬编码了任何类型的秘密信息。",
+      "fix_suggestion": "使用配置管理和密钥管理系统",
+      "enabled": true,
+      "sort_order": 44
+    },
+    {
+      "rule_code": "BATCH-045",
+      "name": "缺少速率限制 - API保护",
+      "description": "检测API接口缺少速率限制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查API接口是否缺少速率限制，防止暴力攻击。",
+      "fix_suggestion": "为API接口添加速率限制",
+      "enabled": true,
+      "sort_order": 45
+    },
+    {
+      "rule_code": "BATCH-046",
+      "name": "不安全的版本控制 - 秘密泄露",
+      "description": "检测版本控制中可能泄露的秘密",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否有敏感文件被提交到版本控制系统。",
+      "fix_suggestion": "使用.gitignore忽略敏感文件",
+      "enabled": true,
+      "sort_order": 46
+    },
+    {
+      "rule_code": "BATCH-047",
+      "name": "缺少输入验证 - 数据格式",
+      "description": "检测缺少输入格式验证的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查用户输入是否验证了数据格式和类型。",
+      "fix_suggestion": "使用白名单验证输入格式",
+      "enabled": true,
+      "sort_order": 47
+    },
+    {
+      "rule_code": "BATCH-048",
+      "name": "不安全的密码重置 - 账户接管",
+      "description": "检测不安全的密码重置功能",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查密码重置功能是否存在安全漏洞。",
+      "fix_suggestion": "使用安全的密码重置流程",
+      "enabled": true,
+      "sort_order": 48
+    },
+    {
+      "rule_code": "BATCH-049",
+      "name": "缺少会话固定保护 - 会话安全",
+      "description": "检测缺少会话固定保护的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否在登录后重新生成会话ID。",
+      "fix_suggestion": "登录后重新生成会话ID",
+      "enabled": true,
+      "sort_order": 49
+    },
+    {
+      "rule_code": "BATCH-050",
+      "name": "不安全的API认证 - 身份验证",
+      "description": "检测API认证实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查API认证机制是否安全实现。",
+      "fix_suggestion": "使用标准的认证方案如JWT、OAuth2",
+      "enabled": true,
+      "sort_order": 50
+    },
+    {
+      "rule_code": "BATCH-051",
+      "name": "缺少MFA支持 - 认证强化",
+      "description": "检测缺少多因素认证的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查是否支持多因素认证来增强账户安全。",
+      "fix_suggestion": "考虑实现多因素认证支持",
+      "enabled": true,
+      "sort_order": 51
+    },
+    {
+      "rule_code": "BATCH-052",
+      "name": "不安全的会话管理 - 会话存储",
+      "description": "检测会话管理不安全的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查会话数据是否安全存储。",
+      "fix_suggestion": "将会话数据存储在服务端",
+      "enabled": true,
+      "sort_order": 52
+    },
+    {
+      "rule_code": "BATCH-053",
+      "name": "缺少数据加密 - 传输安全",
+      "description": "检测传输数据未加密的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查敏感数据传输是否加密。",
+      "fix_suggestion": "使用TLS/SSL加密数据传输",
+      "enabled": true,
+      "sort_order": 53
+    },
+    {
+      "rule_code": "BATCH-054",
+      "name": "不安全的密钥派生 - 密码学",
+      "description": "检测密钥派生不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查密钥派生是否使用了安全的算法。",
+      "fix_suggestion": "使用PBKDF2、scrypt或Argon2",
+      "enabled": true,
+      "sort_order": 54
+    },
+    {
+      "rule_code": "BATCH-055",
+      "name": "缺少签名验证 - 数据完整性",
+      "description": "检测缺少数据签名验证的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查关键数据是否有签名验证保证完整性。",
+      "fix_suggestion": "对关键数据进行数字签名",
+      "enabled": true,
+      "sort_order": 55
+    },
+    {
+      "rule_code": "BATCH-056",
+      "name": "不安全的反射 - 代码注入",
+      "description": "检测不安全使用反射的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查反射功能是否被安全使用。",
+      "fix_suggestion": "避免对用户输入使用反射",
+      "enabled": true,
+      "sort_order": 56
+    },
+    {
+      "rule_code": "BATCH-057",
+      "name": "缺少备份策略 - 数据安全",
+      "description": "检测缺少数据备份策略的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查是否有适当的数据备份策略。",
+      "fix_suggestion": "实施定期的数据备份策略",
+      "enabled": true,
+      "sort_order": 57
+    },
+    {
+      "rule_code": "BATCH-058",
+      "name": "不安全的API设计 - REST安全",
+      "description": "检测API设计不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查REST API设计是否遵循安全最佳实践。",
+      "fix_suggestion": "遵循REST安全最佳实践",
+      "enabled": true,
+      "sort_order": 58
+    },
+    {
+      "rule_code": "BATCH-059",
+      "name": "缺少异常处理 - 错误安全",
+      "description": "检测异常处理不当的代码",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查异常处理是否泄露敏感信息。",
+      "fix_suggestion": "安全地处理异常，不泄露详情",
+      "enabled": true,
+      "sort_order": 59
+    },
+    {
+      "rule_code": "BATCH-060",
+      "name": "不安全的第三方集成 - 供应链安全",
+      "description": "检测第三方集成不安全的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查第三方库和服务的集成是否安全。",
+      "fix_suggestion": "审查和验证第三方依赖",
+      "enabled": true,
+      "sort_order": 60
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "name": "批量规则集 - 第10批",
+  "description": "批量生成的第10批20条规则",
+  "language": "all",
+  "rule_type": "security",
+  "rules": [
+    {
+      "rule_code": "BATCH-161",
+      "name": "补丁管理配置不当",
+      "description": "检测补丁管理配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查补丁管理的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置补丁管理",
+      "enabled": true,
+      "sort_order": 161
+    },
+    {
+      "rule_code": "BATCH-162",
+      "name": "缺少变更管理保护",
+      "description": "检测缺少变更管理保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的变更管理保护措施。",
+      "fix_suggestion": "添加变更管理保护措施",
+      "enabled": true,
+      "sort_order": 162
+    },
+    {
+      "rule_code": "BATCH-163",
+      "name": "不安全的发布管理实现",
+      "description": "检测发布管理实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查发布管理的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现发布管理",
+      "enabled": true,
+      "sort_order": 163
+    },
+    {
+      "rule_code": "BATCH-164",
+      "name": "监控验证不足",
+      "description": "检测监控验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查监控的验证逻辑是否充分。",
+      "fix_suggestion": "增强监控验证逻辑",
+      "enabled": true,
+      "sort_order": 164
+    },
+    {
+      "rule_code": "BATCH-165",
+      "name": "告警信息泄露",
+      "description": "检测告警可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过告警泄露敏感信息。",
+      "fix_suggestion": "防止通过告警泄露信息",
+      "enabled": true,
+      "sort_order": 165
+    },
+    {
+      "rule_code": "BATCH-166",
+      "name": "备份代码质量问题",
+      "description": "检测备份相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查备份相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进备份代码质量",
+      "enabled": true,
+      "sort_order": 166
+    },
+    {
+      "rule_code": "BATCH-167",
+      "name": "缺少恢复错误处理",
+      "description": "检测恢复错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查恢复相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善恢复错误处理",
+      "enabled": true,
+      "sort_order": 167
+    },
+    {
+      "rule_code": "BATCH-168",
+      "name": "灾难恢复性能问题",
+      "description": "检测灾难恢复相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查灾难恢复是否存在性能优化空间。",
+      "fix_suggestion": "优化灾难恢复性能",
+      "enabled": true,
+      "sort_order": 168
+    },
+    {
+      "rule_code": "BATCH-169",
+      "name": "缺少安全测试文档",
+      "description": "检测安全测试缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查安全测试是否有充分的文档说明。",
+      "fix_suggestion": "添加安全测试文档",
+      "enabled": true,
+      "sort_order": 169
+    },
+    {
+      "rule_code": "BATCH-170",
+      "name": "渗透测试 - 标准化",
+      "description": "检测渗透测试相关的标准化问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在渗透测试相关的标准化安全问题。",
+      "fix_suggestion": "修复渗透测试相关的标准化问题",
+      "enabled": true,
+      "sort_order": 170
+    },
+    {
+      "rule_code": "BATCH-171",
+      "name": "代码审计配置不当",
+      "description": "检测代码审计配置不安全的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查代码审计的配置是否遵循安全最佳实践。",
+      "fix_suggestion": "安全配置代码审计",
+      "enabled": true,
+      "sort_order": 171
+    },
+    {
+      "rule_code": "BATCH-172",
+      "name": "缺少静态分析保护",
+      "description": "检测缺少静态分析保护机制的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否缺少必要的静态分析保护措施。",
+      "fix_suggestion": "添加静态分析保护措施",
+      "enabled": true,
+      "sort_order": 172
+    },
+    {
+      "rule_code": "BATCH-173",
+      "name": "不安全的动态分析实现",
+      "description": "检测动态分析实现不安全的代码",
+      "category": "security",
+      "severity": "critical",
+      "custom_prompt": "检查动态分析的实现是否存在安全漏洞。",
+      "fix_suggestion": "重新安全实现动态分析",
+      "enabled": true,
+      "sort_order": 173
+    },
+    {
+      "rule_code": "BATCH-174",
+      "name": "模糊测试验证不足",
+      "description": "检测模糊测试验证不充分的代码",
+      "category": "security",
+      "severity": "medium",
+      "custom_prompt": "检查模糊测试的验证逻辑是否充分。",
+      "fix_suggestion": "增强模糊测试验证逻辑",
+      "enabled": true,
+      "sort_order": 174
+    },
+    {
+      "rule_code": "BATCH-175",
+      "name": "安全评审信息泄露",
+      "description": "检测安全评审可能泄露信息的代码",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查是否可能通过安全评审泄露敏感信息。",
+      "fix_suggestion": "防止通过安全评审泄露信息",
+      "enabled": true,
+      "sort_order": 175
+    },
+    {
+      "rule_code": "BATCH-176",
+      "name": "威胁建模代码质量问题",
+      "description": "检测威胁建模相关的代码质量问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查威胁建模相关的代码质量，如可维护性、可读性等。",
+      "fix_suggestion": "改进威胁建模代码质量",
+      "enabled": true,
+      "sort_order": 176
+    },
+    {
+      "rule_code": "BATCH-177",
+      "name": "缺少风险评估错误处理",
+      "description": "检测风险评估错误处理不当的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查风险评估相关操作的错误处理是否完善。",
+      "fix_suggestion": "完善风险评估错误处理",
+      "enabled": true,
+      "sort_order": 177
+    },
+    {
+      "rule_code": "BATCH-178",
+      "name": "合规性性能问题",
+      "description": "检测合规性相关的性能问题",
+      "category": "quality",
+      "severity": "medium",
+      "custom_prompt": "检查合规性是否存在性能优化空间。",
+      "fix_suggestion": "优化合规性性能",
+      "enabled": true,
+      "sort_order": 178
+    },
+    {
+      "rule_code": "BATCH-179",
+      "name": "缺少隐私保护文档",
+      "description": "检测隐私保护缺少文档的代码",
+      "category": "quality",
+      "severity": "low",
+      "custom_prompt": "检查隐私保护是否有充分的文档说明。",
+      "fix_suggestion": "添加隐私保护文档",
+      "enabled": true,
+      "sort_order": 179
+    },
+    {
+      "rule_code": "BATCH-180",
+      "name": "数据保护 - 实现",
+      "description": "检测数据保护相关的实现问题",
+      "category": "security",
+      "severity": "high",
+      "custom_prompt": "检查代码中是否存在数据保护相关的实现安全问题。",
+      "fix_suggestion": "修复数据保护相关的实现问题",
+      "enabled": true,
+      "sort_order": 180
+    }
+  ]
+}
