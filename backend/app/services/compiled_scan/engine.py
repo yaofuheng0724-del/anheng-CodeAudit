@@ -7,6 +7,7 @@ from typing import Any
 from app.services.compiled_scan.analyzers.apk_analyzer import ApkAnalyzer
 from app.services.compiled_scan.analyzers.base import CompiledAnalyzer, Finding
 from app.services.compiled_scan.analyzers.binary_analyzer import BinaryAnalyzer
+from app.services.compiled_scan.analyzers.java_archive_analyzer import JavaArchiveAnalyzer
 from app.services.compiled_scan.analyzers.sca_analyzer import SCAAnalyzer
 from app.services.compiled_scan.collector import (
     DEFAULT_MAX_SIZE_MB,
@@ -20,6 +21,7 @@ class CompiledScanEngine:
     def __init__(self, analyzers: list[CompiledAnalyzer] | None = None) -> None:
         self.analyzers: list[CompiledAnalyzer] = analyzers or [
             ApkAnalyzer(),
+            JavaArchiveAnalyzer(),
             BinaryAnalyzer(),
             SCAAnalyzer(),
         ]

@@ -6,6 +6,30 @@
 # To update: add a new entry below. Versions in `affected_versions` are exact
 # matches against the captured group; use multiple entries for ranges.
 
+- library: log4j-core
+  aliases: ["log4j-core", "org.apache.logging.log4j"]
+  string_match: "log4j-core"
+  version_regex: 'log4j-core[-\s/]+(\d+\.\d+(?:\.\d+)?)'
+  cves:
+    - id: CVE-2021-44228
+      title: Apache Log4j 远程代码执行漏洞 (CVE-2021-44228)
+      severity: critical
+      affected_ranges: ["2.0-2.14.1"]
+      description: Log4j 2.x 旧版本存在 JNDI 远程代码执行风险。
+      suggestion: 升级 log4j-core 至 2.17.1 或更高版本，并确认运行参数禁用不安全的 JNDI Lookup。
+
+- library: commons-collections
+  aliases: ["commons-collections", "org.apache.commons.collections"]
+  string_match: "commons-collections"
+  version_regex: 'commons-collections[-\s/]+(\d+\.\d+(?:\.\d+)?)'
+  cves:
+    - id: CVE-2015-6420
+      title: Apache Commons Collections 反序列化漏洞 (CVE-2015-6420)
+      severity: high
+      affected_ranges: ["3.0-3.2.1"]
+      description: Commons Collections 旧版本中的 gadget 链可能被用于 Java 反序列化攻击。
+      suggestion: 升级到不受影响版本，并避免反序列化不可信数据。
+
 - library: openssl
   string_match: "OpenSSL 1.0.0"
   version_regex: 'OpenSSL\s+(\d+\.\d+\.\d+[a-z]?)'

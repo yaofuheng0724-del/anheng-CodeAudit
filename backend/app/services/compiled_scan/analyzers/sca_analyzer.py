@@ -13,9 +13,34 @@ from app.services.compiled_scan.collector import COMPILED_EXTENSIONS
 _RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
 
 
+def _version_key(version: str) -> tuple[int, ...]:
+    parts = re.findall(r"\d+", version)
+    return tuple(int(part) for part in parts) if parts else (0,)
+
+
+def _version_matches(version: str, cve: dict[str, Any]) -> bool:
+    if version in (cve.get("affected_versions") or []):
+        return True
+
+    current = _version_key(version)
+    for raw_range in cve.get("affected_ranges") or []:
+        range_text = str(raw_range).strip()
+        if "-" in range_text and not range_text.startswith("-"):
+            start, end = [part.strip() for part in range_text.split("-", 1)]
+            if _version_key(start) <= current <= _version_key(end):
+                return True
+        elif range_text.startswith("<="):
+            if current <= _version_key(range_text[2:].strip()):
+                return True
+        elif range_text.startswith("<"):
+            if current < _version_key(range_text[1:].strip()):
+                return True
+    return False
+
+
 class SCAAnalyzer(CompiledAnalyzer):
     name = "compiled.sca"
-    supported_extensions = set(COMPILED_EXTENSIONS)
+    supported_extensions = set(COMPILED_EXTENSIONS) - {".jar", ".war", ".ear", ".aar"}
 
     def __init__(self) -> None:
         with open(_RULES_DIR / "known_libs.yml", "r", encoding="utf-8") as fh:
@@ -56,7 +81,7 @@ class SCAAnalyzer(CompiledAnalyzer):
             if not version:
                 continue
             for cve in entry["cves"]:
-                if version not in cve["affected_versions"]:
+                if not _version_matches(version, cve):
                     continue
                 findings.append(
                     Finding(

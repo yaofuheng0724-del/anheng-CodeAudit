@@ -2471,7 +2471,7 @@ async def list_agent_findings(
     severity: Optional[str] = None,
     verified_only: bool = False,
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(1000, ge=1, le=5000),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:

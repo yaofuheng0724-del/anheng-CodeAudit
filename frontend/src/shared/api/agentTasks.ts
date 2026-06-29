@@ -250,9 +250,13 @@ export async function getAgentFindings(
     severity?: string;
     vulnerability_type?: string;
     is_verified?: boolean;
+    skip?: number;
+    limit?: number;
   }
 ): Promise<AgentFinding[]> {
-  const response = await apiClient.get(`/agent-tasks/${taskId}/findings`, { params });
+  const response = await apiClient.get(`/agent-tasks/${taskId}/findings`, {
+    params: { limit: 5000, ...(params || {}) },
+  });
   return response.data;
 }
 

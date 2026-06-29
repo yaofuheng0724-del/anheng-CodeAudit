@@ -18,6 +18,7 @@ from app.services.quick_scan import collect_source_files, run_pattern_scan, shou
 from app.services.git_ssh_service import GitSSHOperations
 from app.services.scanner import fetch_repository_files_with_branch_fallback
 from app.services.archive_utils import extract_archive_recursive, is_supported_upload_file
+from app.services.compiled_scan.engine import CompiledScanEngine
 
 
 def test_user_create_full_name_is_optional():
@@ -86,6 +87,26 @@ def test_compiled_upload_accepts_common_artifacts_and_keeps_direct_file(tmp_path
     materialize_uploaded_scan_input(str(jar_file), workspace, "compiled")
 
     assert (workspace / "demo.jar").read_bytes() == b"PK\x03\x04fake jar"
+
+
+def test_compiled_scan_engine_parses_java_archives(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    jar_file = workspace / "app.jar"
+
+    with zipfile.ZipFile(jar_file, "w") as zf:
+        zf.writestr("WEB-INF/lib/log4j-core-2.14.1.jar", b"nested dependency marker")
+        zf.writestr(
+            "META-INF/maven/org.apache.logging.log4j/log4j-core/pom.properties",
+            "groupId=org.apache.logging.log4j\nartifactId=log4j-core\nversion=2.14.1\n",
+        )
+        zf.writestr("com/example/Secrets.class", b"constant AKIA1234567890ABCDEF inside class")
+
+    findings = CompiledScanEngine().scan(workspace, {"enable_sca": True, "max_binary_size_mb": 200})
+
+    rule_ids = {finding["rule_id"] for finding in findings}
+    assert "compiled.java_archive.CVE-2021-44228" in rule_ids
+    assert "compiled.java_archive.secret.aws_access_key" in rule_ids
 
 
 def test_agent_finding_path_resolution_handles_common_agent_formats(tmp_path):
