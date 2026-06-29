@@ -222,6 +222,10 @@ export const api = {
     await apiClient.post(`/tasks/${id}/cancel`);
   },
 
+  async deleteAuditTask(id: string): Promise<void> {
+    await apiClient.delete(`/tasks/${id}`);
+  },
+
   // ==================== AuditIssue 相关方法 ====================
 
   async getAuditIssues(taskId: string, params?: { skip?: number; limit?: number }): Promise<{ total: number; items: AuditIssue[]; skip: number; limit: number }> {

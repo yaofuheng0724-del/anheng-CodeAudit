@@ -17,7 +17,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import case, func
+from sqlalchemy import case, delete, func
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field
@@ -28,6 +28,7 @@ from app.models.agent_task import (
     AgentTask, AgentEvent, AgentFinding,
     AgentTaskStatus, AgentTaskPhase, AgentEventType,
     VulnerabilitySeverity, FindingStatus,
+    AgentCheckpoint, AgentTreeNode,
 )
 from app.models.project import Project
 from app.models.user import User
@@ -1965,6 +1966,63 @@ async def cancel_agent_task(
 
     logger.info(f"[Cancel] Task {task_id} cancelled successfully")
     return {"message": "任务已取消", "task_id": task_id}
+
+
+@router.delete("/{task_id}")
+async def delete_agent_task(
+    task_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    删除 Agent 审计任务及其事件、发现、检查点和 Agent 树。
+    """
+    task = await db.get(AgentTask, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    project = await db.get(Project, task.project_id)
+    if not project or project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="无权删除此任务")
+
+    task_status = task.status
+    should_cancel = task_status not in [AgentTaskStatus.COMPLETED, AgentTaskStatus.FAILED, AgentTaskStatus.CANCELLED]
+    if should_cancel:
+        _cancelled_tasks.add(task_id)
+
+        runner = _running_tasks.pop(task_id, None)
+        if runner:
+            runner.cancel()
+
+        asyncio_task = _running_asyncio_tasks.pop(task_id, None)
+        if asyncio_task and not asyncio_task.done():
+            asyncio_task.cancel()
+
+        _running_orchestrators.pop(task_id, None)
+        _running_event_managers.pop(task_id, None)
+
+        if task_status == AgentTaskStatus.SCHEDULED and task.scheduled_scan_id:
+            from app.models.scheduled_scan import ScheduledScan
+            schedule = await db.get(ScheduledScan, task.scheduled_scan_id)
+            if schedule:
+                schedule.is_active = False
+    else:
+        _running_tasks.pop(task_id, None)
+        _running_asyncio_tasks.pop(task_id, None)
+        _running_orchestrators.pop(task_id, None)
+        _running_event_managers.pop(task_id, None)
+
+    await db.execute(delete(AgentEvent).where(AgentEvent.task_id == task_id))
+    await db.execute(delete(AgentFinding).where(AgentFinding.task_id == task_id))
+    await db.execute(delete(AgentCheckpoint).where(AgentCheckpoint.task_id == task_id))
+    await db.execute(delete(AgentTreeNode).where(AgentTreeNode.task_id == task_id))
+    await db.delete(task)
+    await db.commit()
+    if not should_cancel or task_status == AgentTaskStatus.SCHEDULED:
+        _cancelled_tasks.discard(task_id)
+
+    logger.info(f"[Delete] Agent task {task_id} deleted")
+    return {"message": "任务已删除", "task_id": task_id}
 
 
 @router.get("/{task_id}/events")

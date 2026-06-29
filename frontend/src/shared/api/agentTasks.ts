@@ -223,6 +223,14 @@ export async function cancelAgentTask(taskId: string): Promise<{ message: string
 }
 
 /**
+ * 删除 Agent 任务
+ */
+export async function deleteAgentTask(taskId: string): Promise<{ message: string; task_id: string }> {
+  const response = await apiClient.delete(`/agent-tasks/${taskId}`);
+  return response.data;
+}
+
+/**
  * 获取 Agent 任务事件列表
  */
 export async function getAgentEvents(

@@ -19,6 +19,7 @@ import {
 	getAgentTask,
 	startAgentTask,
 	cancelAgentTask,
+	deleteAgentTask,
 	getAgentEvents,
 	getAgentFindings,
 	getAgentFinding,
@@ -137,6 +138,19 @@ describe("agentTasks API", () => {
 			const result = await cancelAgentTask("task-1");
 
 			expect(apiClient.post).toHaveBeenCalledWith("/agent-tasks/task-1/cancel");
+			expect(result).toEqual(mockResponse);
+		});
+	});
+
+	// ---- deleteAgentTask ----
+	describe("deleteAgentTask", () => {
+		it("should DELETE /agent-tasks/:taskId", async () => {
+			const mockResponse = { message: "Task deleted", task_id: "task-1" };
+			(apiClient.delete as Mock).mockResolvedValue({ data: mockResponse });
+
+			const result = await deleteAgentTask("task-1");
+
+			expect(apiClient.delete).toHaveBeenCalledWith("/agent-tasks/task-1");
 			expect(result).toEqual(mockResponse);
 		});
 	});

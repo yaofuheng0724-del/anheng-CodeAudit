@@ -16,15 +16,15 @@ import {
   XCircle,
   Eye,
   Bot,
-  } from "lucide-react";
+  Trash2,
+} from "lucide-react";
 import { api } from "@/shared/config/database";
-import { apiClient } from "@/shared/api/serverClient";
 import type { AuditTask } from "@/shared/types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import CreateTaskDialog from "@/components/audit/CreateTaskDialog";
 import { calculateTaskProgress } from "@/shared/utils/utils";
-import { getAgentTasks, cancelAgentTask, type AgentTask } from "@/shared/api/agentTasks";
+import { getAgentTasks, cancelAgentTask, deleteAgentTask, type AgentTask } from "@/shared/api/agentTasks";
 import CreateAgentTaskDialog from "@/components/agent/CreateAgentTaskDialog";
 import CreateIacTaskDialog from "@/components/audit/CreateIacTaskDialog";
 
@@ -89,10 +89,12 @@ export default function AuditTasks() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [cancellingTaskId, setCancellingTaskId] = useState<string | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   // Agent任务状态
   const [agentTasks, setAgentTasks] = useState<AgentTask[]>([]);
   const [agentLoading, setAgentLoading] = useState(true);
   const [cancellingAgentTaskId, setCancellingAgentTaskId] = useState<string | null>(null);
+  const [deletingAgentTaskId, setDeletingAgentTaskId] = useState<string | null>(null);
   const [showCreateAgentDialog, setShowCreateAgentDialog] = useState(false);
   const [iacDialogOpen, setIacDialogOpen] = useState(false);
 
@@ -234,6 +236,49 @@ export default function AuditTasks() {
       toast.error(error?.response?.data?.detail || "取消AI任务失败");
     } finally {
       setCancellingAgentTaskId(null);
+    }
+  };
+
+  const handleDeleteTask = async (task: AuditTask) => {
+    if (deletingTaskId) return;
+    const taskName = (task.task_type as string) === "iac_scan"
+      ? `${task.project?.name || "未知项目"} 的 IaC 扫描任务`
+      : getRegularTaskDisplayName(task);
+    if (!window.confirm(`确定删除「${taskName}」吗？关联问题和报告数据也会被删除。`)) {
+      return;
+    }
+
+    try {
+      setDeletingTaskId(task.id);
+      await api.deleteAuditTask(task.id);
+      toast.success("任务已删除");
+      setTasks((prev) => prev.filter((item) => item.id !== task.id));
+      taskProgressRef.current.delete(task.id);
+    } catch (error: any) {
+      console.error('删除任务失败:', error);
+      toast.error(error?.response?.data?.detail || "删除任务失败");
+    } finally {
+      setDeletingTaskId(null);
+    }
+  };
+
+  const handleDeleteAgentTask = async (task: AgentTask) => {
+    if (deletingAgentTaskId) return;
+    const taskName = task.name || "深度审计任务";
+    if (!window.confirm(`确定删除「${taskName}」吗？关联事件、发现和报告数据也会被删除。`)) {
+      return;
+    }
+
+    try {
+      setDeletingAgentTaskId(task.id);
+      await deleteAgentTask(task.id);
+      toast.success("任务已删除");
+      setAgentTasks((prev) => prev.filter((item) => item.id !== task.id));
+    } catch (error: any) {
+      console.error('删除AI任务失败:', error);
+      toast.error(error?.response?.data?.detail || "删除AI任务失败");
+    } finally {
+      setDeletingAgentTaskId(null);
     }
   };
 
@@ -388,7 +433,10 @@ export default function AuditTasks() {
                               <XCircle className="w-3.5 h-3.5" />
                             </Button>
                           )}
-                                                  </div>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/12 hover:text-destructive" title="删除任务" onClick={() => void handleDeleteAgentTask(task)} disabled={deletingAgentTaskId === task.id}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -484,7 +532,10 @@ export default function AuditTasks() {
                               <XCircle className="w-3.5 h-3.5" />
                             </Button>
                           )}
-                                                  </div>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/12 hover:text-destructive" title="删除任务" onClick={() => void handleDeleteTask(task)} disabled={deletingTaskId === task.id}>
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -541,11 +592,21 @@ export default function AuditTasks() {
                         </td>
                         <td className="py-2.5 px-3 text-muted-foreground">{t.created_at}</td>
                         <td className="py-2.5 px-3">
-                          <Link to={`/tasks/${t.id}`}>
-                            <Button variant="ghost" size="icon" className="cyber-btn-ghost h-7 w-7" title="查看详情">
-                              <Eye className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-1">
+                            <Link to={`/tasks/${t.id}`}>
+                              <Button variant="ghost" size="icon" className="cyber-btn-ghost h-7 w-7" title="查看详情">
+                                <Eye className="w-3.5 h-3.5" />
+                              </Button>
+                            </Link>
+                            {(t.status === 'running' || t.status === 'pending' || t.status === 'scheduled') && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/12 hover:text-destructive" title="取消任务" onClick={() => handleCancelTask(t.id)} disabled={cancellingTaskId === t.id}>
+                                <XCircle className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-destructive/12 hover:text-destructive" title="删除任务" onClick={() => void handleDeleteTask(t)} disabled={deletingTaskId === t.id}>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </Button>
-                          </Link>
+                          </div>
                         </td>
                       </tr>
                     ))

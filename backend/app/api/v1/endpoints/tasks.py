@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, defer
-from sqlalchemy import func, text
+from sqlalchemy import delete, func, text
 from pydantic import BaseModel
 from datetime import datetime, timezone
 import json
@@ -508,6 +508,37 @@ async def cancel_task(
     await db.commit()
     
     return {"message": "任务已取消", "task_id": id}
+
+
+@router.delete("/{id}")
+async def delete_task(
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Delete a quick/IaC audit task and its findings.
+    """
+    task = await db.get(AuditTask, id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+
+    if task.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="无权删除此任务")
+
+    if task.status in ["pending", "running", "scheduled"]:
+        task_control.cancel_task(id)
+        if task.status == "scheduled" and task.scheduled_scan_id:
+            from app.models.scheduled_scan import ScheduledScan
+            schedule = await db.get(ScheduledScan, task.scheduled_scan_id)
+            if schedule:
+                schedule.is_active = False
+
+    await db.execute(delete(AuditIssue).where(AuditIssue.task_id == id))
+    await db.delete(task)
+    await db.commit()
+
+    return {"message": "任务已删除", "task_id": id}
 
 
 @router.get("/{id}/issues", response_model=PaginatedIssuesResponse)
