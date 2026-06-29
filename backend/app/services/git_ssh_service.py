@@ -493,8 +493,20 @@ class GitSSHOperations:
                 repo_url, private_key, temp_clone_dir, branch
             )
 
+            if not clone_result['success'] and branch in {"main", "master"}:
+                logger.warning(
+                    "Git clone failed for branch %s, retrying remote default branch: %s",
+                    branch,
+                    clone_result.get('error') or clone_result.get('message') or '',
+                )
+                shutil.rmtree(temp_clone_dir, ignore_errors=True)
+                os.makedirs(temp_clone_dir, exist_ok=True)
+                clone_result = GitSSHOperations.clone_repo_with_ssh(
+                    repo_url, private_key, temp_clone_dir, None
+                )
+
             if not clone_result['success']:
-                raise Exception(f"克隆仓库失败: {clone_result.get('error', '')}")
+                raise Exception(f"克隆仓库失败: {clone_result.get('error') or clone_result.get('message') or ''}")
 
             # 扫描目录获取文件列表
             from app.services.scanner import is_text_file, should_exclude

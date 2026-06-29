@@ -312,6 +312,53 @@ async def get_gitea_files(repo_url: str, branch: str, token: str = None, exclude
     return files
 
 
+async def fetch_repository_files_with_branch_fallback(
+    repo_type: str,
+    repo_url: str,
+    branch: str,
+    token: str = None,
+    exclude_patterns: List[str] = None,
+    project_default_branch: Optional[str] = None,
+) -> List[Dict[str, str]]:
+    file_fetchers = {
+        "github": get_github_files,
+        "gitlab": get_gitlab_files,
+        "gitea": get_gitea_files,
+    }
+    branch_fetchers = {
+        "github": get_github_branches,
+        "gitlab": get_gitlab_branches,
+        "gitea": get_gitea_branches,
+    }
+    fetch_files = file_fetchers[repo_type]
+    fetch_branches = branch_fetchers[repo_type]
+
+    try:
+        return await fetch_files(repo_url, branch, token, exclude_patterns)
+    except Exception as original_error:
+        default_candidates = {item for item in (project_default_branch, "main", "master") if item}
+        if branch not in default_candidates:
+            raise
+
+        try:
+            branches = await fetch_branches(repo_url, token)
+        except Exception:
+            raise original_error
+
+        fallback_branch = next((item for item in branches if item and item != branch), None)
+        if not fallback_branch:
+            raise original_error
+
+        logger.warning(
+            "%s file listing failed for branch %s, retrying branch %s: %s",
+            repo_type,
+            branch,
+            fallback_branch,
+            original_error,
+        )
+        return await fetch_files(repo_url, fallback_branch, token, exclude_patterns)
+
+
 def _write_workspace_file(workspace_dir: str, relative_path: str, content: str) -> None:
     target_path = os.path.join(workspace_dir, relative_path)
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
@@ -402,11 +449,17 @@ async def materialize_repository_workspace(
         return workspace_dir
 
     if repo_type == "github":
-        files = await get_github_files(repo_url, branch, github_token, exclude_patterns)
+        files = await fetch_repository_files_with_branch_fallback(
+            repo_type, repo_url, branch, github_token, exclude_patterns, project.default_branch
+        )
     elif repo_type == "gitlab":
-        files = await get_gitlab_files(repo_url, branch, gitlab_token, exclude_patterns)
+        files = await fetch_repository_files_with_branch_fallback(
+            repo_type, repo_url, branch, gitlab_token, exclude_patterns, project.default_branch
+        )
     elif repo_type == "gitea":
-        files = await get_gitea_files(repo_url, branch, gitea_token, exclude_patterns)
+        files = await fetch_repository_files_with_branch_fallback(
+            repo_type, repo_url, branch, gitea_token, exclude_patterns, project.default_branch
+        )
     else:
         raise Exception("不支持的仓库类型，仅支持 GitHub、GitLab、Gitea 和 SVN")
 

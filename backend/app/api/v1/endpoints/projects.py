@@ -46,6 +46,16 @@ from app.services.zip_storage import (
 
 router = APIRouter()
 
+
+def choose_effective_default_branch(branches: List[str], preferred: Optional[str]) -> str:
+    """Return a branch that is actually present when a branch list is available."""
+    preferred_branch = preferred or "main"
+    if not branches:
+        return preferred_branch
+    if preferred_branch in branches:
+        return preferred_branch
+    return branches[0]
+
 # Schemas
 class ProjectCreate(BaseModel):
     name: str
@@ -904,8 +914,9 @@ async def get_project_branches(
         
         print(f"[Branch] 成功获取 {len(branches)} 个分支")
         
-        # 将默认分支放在第一位
-        default_branch = project.default_branch or "main"
+        # 将有效默认分支放在第一位。项目里保存的默认分支可能仍是创建表单默认值 main，
+        # 但远端仓库实际只有 master/develop，此时继续返回 main 会导致扫描拉取失败。
+        default_branch = choose_effective_default_branch(branches, project.default_branch)
         if default_branch in branches:
             branches.remove(default_branch)
             branches.insert(0, default_branch)

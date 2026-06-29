@@ -26,7 +26,7 @@ export async function runRepositoryAudit(params: {
     project_id: params.projectId,
     name: params.taskName?.trim() || undefined,
     task_type: "repository",
-    branch_name: params.branch || "main",
+    branch_name: params.branch?.trim() || undefined,
     exclude_patterns: params.exclude || [],
     functionWhitelist: params.functionWhitelist,
     vulnerabilityWhitelist: params.vulnerabilityWhitelist,

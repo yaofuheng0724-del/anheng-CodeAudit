@@ -29,4 +29,18 @@ describe("runRepositoryAudit", () => {
 			}),
 		);
 	});
+
+	it("does not force an unspecified branch to main", async () => {
+		await runRepositoryAudit({
+			projectId: "project-1",
+			repoUrl: "https://example.com/repo.git",
+			taskName: "Use project default",
+		});
+
+		expect(api.createAuditTask).toHaveBeenCalledWith(
+			expect.objectContaining({
+				branch_name: undefined,
+			}),
+		);
+	});
 });

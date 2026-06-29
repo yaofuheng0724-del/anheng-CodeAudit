@@ -6,11 +6,14 @@ import pytest
 
 from app.api.v1.endpoints.schedules import ScheduledScanCreate, _serialize_schedule
 from app.api.v1.endpoints.schedules import _calculate_next_run_at
+from app.api.v1.endpoints.projects import choose_effective_default_branch
 from app.models.agent_task import AgentTask
 from app.models.audit import AuditTask
 from app.services.scheduled_scans import ScheduledScanRunner
 from app.schemas.user import UserCreate
 from app.services.quick_scan import collect_source_files, run_pattern_scan, should_exclude
+from app.services.git_ssh_service import GitSSHOperations
+from app.services.scanner import fetch_repository_files_with_branch_fallback
 
 
 def test_user_create_full_name_is_optional():
@@ -42,6 +45,52 @@ def test_pattern_scan_sets_line_counts_and_finds_secret(tmp_path):
 
     assert files[0]["line_count"] == 2
     assert any(finding["rule_id"] == "DA-SECRET-001" for finding in findings)
+
+
+def test_choose_effective_default_branch_uses_existing_branch():
+    assert choose_effective_default_branch(["master", "develop"], "main") == "master"
+    assert choose_effective_default_branch(["develop", "main"], "main") == "main"
+
+
+def test_ssh_repo_file_collection_retries_default_branch_for_main_mismatch():
+    calls = []
+
+    def fake_clone(_repo_url, _private_key, _target_dir, branch):
+        calls.append(branch)
+        if branch == "main":
+            return {"success": False, "error": "Remote branch main not found"}
+        return {"success": True}
+
+    with patch.object(GitSSHOperations, "clone_repo_with_ssh", side_effect=fake_clone):
+        assert GitSSHOperations.get_repo_files_via_ssh("git@example.com:org/repo.git", "key", "main") == []
+
+    assert calls == ["main", None]
+
+
+@pytest.mark.asyncio
+async def test_repository_file_listing_retries_existing_branch_for_default_mismatch():
+    calls = []
+
+    async def fake_get_files(_repo_url, branch, _token=None, _exclude_patterns=None):
+        calls.append(branch)
+        if branch == "main":
+            raise Exception("branch not found")
+        return [{"path": "app.py", "url": "https://example.com/app.py"}]
+
+    async def fake_get_branches(_repo_url, _token=None):
+        return ["master"]
+
+    with patch("app.services.scanner.get_github_files", fake_get_files), \
+         patch("app.services.scanner.get_github_branches", fake_get_branches):
+        files = await fetch_repository_files_with_branch_fallback(
+            "github",
+            "https://github.com/example/repo",
+            "main",
+            project_default_branch="main",
+        )
+
+    assert files == [{"path": "app.py", "url": "https://example.com/app.py"}]
+    assert calls == ["main", "master"]
 
 
 def test_schedule_next_run_moves_into_same_day_window():
